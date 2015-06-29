@@ -24,7 +24,7 @@ foreach ($pages as $page){
     $sitemap->addItem(new SitemapItem(
         'http://rmcreative.ru/' . $page->url,
         $page->updatedOn,
-        SitemapItem::MONTHLY
+        Item::MONTHLY
     ));
 }
  
