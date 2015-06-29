@@ -6,6 +6,7 @@ Very simple abstraction for sitemap generation.
 How to use it
 -------------
 
+```php
 use samdark\sitemap;
 
 $sitemap = new Sitemap();
@@ -32,3 +33,4 @@ $sitemap->writeToFile('sitemap.xml');
 
 // or get it as string
 $sitemapString = $sitemap->render();
+```
