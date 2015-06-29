@@ -1,0 +1,29 @@
+
+{
+    "name": "samdark/sitemap",
+    "description": "Very simple abstraction for sitemap generation",
+    "keywords": [
+        "sitemap"
+    ],
+    "homepage": "https://github.com/samdark/sitemap",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Alexander Makarov",
+            "email": "sam@rmcreative.ru",
+            "homepage": "http://rmcreative.ru/"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/samdark/sitemap/issues",
+        "source": "https://github.com/samdark/sitemap"
+    },
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "samdark\\sitemap\\": ""
+        }
+    }
+}
