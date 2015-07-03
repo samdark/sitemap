@@ -3,6 +3,14 @@ Sitemap
 
 Sitemap and sitemap index builder.
 
+Features
+--------
+
+- Create sitemap files.
+- Create sitemap index files.
+- Automatically creates new file if 50000 URLs limit is reached.
+- Memory efficient buffer of configurable size.
+
 Installation
 ------------
 
@@ -66,6 +74,18 @@ foreach ($staticSitemapUrls as $sitemapUrl) {
 // write it
 $index->write();
 ```
+
+Options
+-------
+
+There are two methods to configre `Sitemap` instance:
+ 
+- `setMaxUrls($number)`. Sets maximum number of URLs to write in a single file.
+  Default is 50000 which is the limit according to specification and most of
+  existing implementations.
+- `setBufferSize($number)`. Sets number of URLs to be kept in memory before writing it to file.
+  Default is 1000. If you have more memory consider increasing it. If 1000 URLs doesn't fit,
+  decrease it.
 
 Running tests
 -------------

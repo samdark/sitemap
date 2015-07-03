@@ -44,9 +44,9 @@ class Sitemap
     private $writtenFilePaths = [];
 
     /**
-     * @var integer number of URLs which triggers writing to file and clearing memory
+     * @var integer number of URLs to be kept in memory before writing it to file
      */
-    private $flushThreshold = 1000;
+    private $bufferSize = 1000;
 
     /**
      * @var array valid values for frequency parameter
@@ -134,7 +134,7 @@ class Sitemap
         if ($this->urlsCount % $this->maxUrls === 0) {
             $this->finishFile();
             $this->createNewFile();
-        } elseif ($this->urlsCount % $this->flushThreshold === 0) {
+        } elseif ($this->urlsCount % $this->bufferSize === 0) {
             $this->flush();
         }
 
@@ -205,13 +205,13 @@ class Sitemap
     }
 
     /**
-     * Sets number of URLs to be kept in buffer.
+     * Sets number of URLs to be kept in memory before writing it to file.
      * Default is 1000.
      *
      * @param integer $number
      */
-    public function setFlushThreshold($number)
+    public function setBufferSize($number)
     {
-        $this->flushThreshold = $number;
+        $this->bufferSize = $number;
     }
 }
