@@ -1,7 +1,19 @@
 Sitemap
 =======
 
-Very simple abstraction for sitemap generation.
+Sitemap and sitemap index builder.
+
+Installation
+------------
+
+Installation via Composer is very simple:
+
+```
+composer require samdark/sitemap
+```
+
+After that, make sure your application autoloads Composer classes by including
+`vendor/autoload.php`.
 
 How to use it
 -------------
@@ -9,28 +21,58 @@ How to use it
 ```php
 use samdark\sitemap;
 
-$sitemap = new Sitemap();
- 
-// add page
-$sitemap->addItem(new SitemapItem(
-    'http://rmcreative.ru/', // URL
-    time(), // last modifcation timestamp
-    Item::DAILY, // update frequency
-    0.7 // priority
-));
- 
-// add more pages
-foreach ($pages as $page){
-    $sitemap->addItem(new SitemapItem(
-        'http://rmcreative.ru/' . $page->url,
-        $page->updatedOn,
-        Item::MONTHLY
-    ));
-}
- 
-// generate sitemap.xml
-$sitemap->writeToFile('sitemap.xml');
+// create sitemap
+$sitemap = new Sitemap(__DIR__ . '/sitemap.xml');
 
-// or get it as string
-$sitemapString = $sitemap->render();
+// add some URLs
+$sitemap->addItem('http://example.com/mylink1');
+$sitemap->addItem('http://example.com/mylink2', time());
+$sitemap->addItem('http://example.com/mylink3', time(), Sitemap::HOURLY);
+$sitemap->addItem('http://example.com/mylink4', time(), Sitemap::DAILY, 0.3);
+
+// write it
+$sitemap->write();
+
+// get URLs of sitemaps written
+$sitemapFileUrls = $sitemap->getSitemapUrls('http://example.com/');
+
+// create sitemap for static files
+$staticSitemap = new Sitemap(__DIR__ . '/sitemap_static.xml');
+
+// add some URLs
+$staticSitemap->addItem('http://example.com/about');
+$staticSitemap->addItem('http://example.com/tos');
+$staticSitemap->addItem('http://example.com/jobs');
+
+// write it
+$staticSitemap->write();
+
+// get URLs of sitemaps written
+$staticSitemapUrls = $staticSitemap->getSitemapUrls('http://example.com/');
+
+// create sitemap index file
+$index = new Index(__DIR__ . '/sitemap_index.xml');
+
+// add URLs
+foreach ($sitemapFileUrls as $sitemapUrl) {
+    $index->addSitemap($sitemapUrl);
+}
+
+// add more URLs
+foreach ($staticSitemapUrls as $sitemapUrl) {
+    $index->addSitemap($sitemapUrl);
+}
+
+// write it
+$index->write();
+```
+
+Running tests
+-------------
+
+In order to run tests perform the following commands:
+
+```
+composer install
+phpunit
 ```

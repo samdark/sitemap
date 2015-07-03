@@ -1,7 +1,7 @@
 
 {
     "name": "samdark/sitemap",
-    "description": "Very simple abstraction for sitemap generation",
+    "description": "Sitemap and sitemap index builder",
     "keywords": [
         "sitemap"
     ],
