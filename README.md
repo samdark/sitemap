@@ -27,7 +27,7 @@ How to use it
 -------------
 
 ```php
-use samdark\sitemap;
+use samdark\sitemap\Sitemap;
 
 // create sitemap
 $sitemap = new Sitemap(__DIR__ . '/sitemap.xml');
