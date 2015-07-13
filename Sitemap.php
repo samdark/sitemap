@@ -142,6 +142,15 @@ class Sitemap
         $this->writer->writeElement('loc', $location);
 
         if ($priority !== null) {
+            if(!is_numeric($priority) || $priority < 0 || $priority > 1) {
+                throw new \InvalidArgumentException(
+                    'Please specify valid priority. Valid values range from 0.0 to 1.0'
+                    . '. You have specified: ' . $priority . '.'
+                );
+            }
+        }
+
+        if ($priority !== null) {
             $this->writer->writeElement('priority', $priority);
         }
 

@@ -63,4 +63,16 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
 
         unlink($fileName);
     }
+
+    public function testPriorityValidation()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+
+        $fileName = __DIR__ . '/sitemap.xml';
+        $sitemap = new Sitemap($fileName);
+        $sitemap->addItem('http://example.com/mylink1');
+        $sitemap->addItem('http://example.com/mylink2', time(), 'always', 2.0);
+
+        unlink($fileName);
+    }
 }
