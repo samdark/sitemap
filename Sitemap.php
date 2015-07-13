@@ -128,26 +128,30 @@ class Sitemap
      * @param integer $lastModified last modification timestamp
      * @param float $changeFrequency change frquency. Use one of self:: contants here
      * @param string $priority item's priority (0.0-1.0). Default null is equal to 0.5
+     *
+     * @throws \InvalidArgumentException
      */
     public function addItem($location, $lastModified = null, $changeFrequency = null, $priority = null)
     {
-        if ($this->urlsCount % $this->maxUrls === 0) {
+        if ($this->urlsCount === 0) {
+            $this->createNewFile();
+        } elseif ($this->urlsCount % $this->maxUrls === 0) {
             $this->finishFile();
             $this->createNewFile();
-        } elseif ($this->urlsCount % $this->bufferSize === 0) {
+        }
+
+        if ($this->urlsCount % $this->bufferSize === 0) {
             $this->flush();
         }
 
         $this->writer->startElement('url');
         $this->writer->writeElement('loc', $location);
 
-        if ($priority !== null) {
-            if(!is_numeric($priority) || $priority < 0 || $priority > 1) {
+        if ($priority !== null && (!is_numeric($priority) || $priority < 0 || $priority > 1)) {
                 throw new \InvalidArgumentException(
                     'Please specify valid priority. Valid values range from 0.0 to 1.0'
                     . '. You have specified: ' . $priority . '.'
                 );
-            }
         }
 
         if ($priority !== null) {
