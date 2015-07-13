@@ -51,7 +51,7 @@ class Sitemap
     /**
      * @var array valid values for frequency parameter
      */
-    private static $validFrequencies = [
+    private $validFrequencies = [
         self::ALWAYS,
         self::HOURLY,
         self::DAILY,
@@ -72,6 +72,14 @@ class Sitemap
      */
     public function __construct($filePath)
     {
+        $dir = dirname($filePath);
+        if (!is_dir($dir)) {
+            throw new \InvalidArgumentException(
+                'Please specify valid file path. Directory not exists'
+                . '. You have specified: ' . $dir . '.'
+            );
+        }
+
         $this->filePath = $filePath;
     }
 
@@ -158,10 +166,10 @@ class Sitemap
         }
 
         if ($changeFrequency !== null) {
-            if (!in_array($changeFrequency, self::$validFrequencies, true)) {
+            if (!in_array($changeFrequency, $this->validFrequencies, true)) {
                 throw new \InvalidArgumentException(
                     'Please specify valid changeFrequency. Valid values are: '
-                    . implode(', ', self::$validFrequencies)
+                    . implode(', ', $this->validFrequencies)
                     . '. You have specified: ' . $changeFrequency . '.'
                 );
             }
