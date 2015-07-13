@@ -175,7 +175,7 @@ class Sitemap
         }
 
         $parts = pathinfo($this->filePath);
-        return $parts['dirname'] . '/' . $parts['filename'] . '_' . $this->fileCount . '.' . $parts['extension'];
+        return $parts['dirname'] . DIRECTORY_SEPARATOR . $parts['filename'] . '_' . $this->fileCount . '.' . $parts['extension'];
     }
 
     /**
@@ -188,8 +188,7 @@ class Sitemap
     {
         $urls = [];
         foreach ($this->writtenFilePaths as $file) {
-            $parts = pathinfo($file);
-            $urls[] = $baseUrl . $parts['basename'];
+            $urls[] = $baseUrl . pathinfo($file, PATHINFO_BASENAME);
         }
         return $urls;
     }
@@ -201,7 +200,7 @@ class Sitemap
      */
     public function setMaxUrls($number)
     {
-        $this->maxUrls = $number;
+        $this->maxUrls = (int)$number;
     }
 
     /**
@@ -212,6 +211,6 @@ class Sitemap
      */
     public function setBufferSize($number)
     {
-        $this->bufferSize = $number;
+        $this->bufferSize = (int)$number;
     }
 }
