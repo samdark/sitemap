@@ -3,6 +3,8 @@ Sitemap
 
 Sitemap and sitemap index builder.
 
+<img src="https://travis-ci.org/samdark/sitemap.svg" />
+
 Features
 --------
 
