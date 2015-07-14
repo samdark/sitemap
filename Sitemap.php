@@ -162,13 +162,8 @@ class Sitemap
 
         $this->writer->writeElement('loc', $location);
 
-        if ($priority !== null) {
-            if (!is_numeric($priority) || $priority < 0 || $priority > 1) {
-                throw new \InvalidArgumentException(
-                    "Please specify valid priority. Valid values range from 0.0 to 1.0. You have specified: {$priority}."
-                );
-            }
-            $this->writer->writeElement('priority', $priority);
+        if ($lastModified !== null) {
+            $this->writer->writeElement('lastmod', date('c', $lastModified));
         }
 
         if ($changeFrequency !== null) {
@@ -183,9 +178,15 @@ class Sitemap
             $this->writer->writeElement('changefreq', $changeFrequency);
         }
 
-        if ($lastModified !== null) {
-            $this->writer->writeElement('lastmod', date('c', $lastModified));
+        if ($priority !== null) {
+            if (!is_numeric($priority) || $priority < 0 || $priority > 1) {
+                throw new \InvalidArgumentException(
+                    "Please specify valid priority. Valid values range from 0.0 to 1.0. You have specified: {$priority}."
+                );
+            }
+            $this->writer->writeElement('priority', $priority);
         }
+
         $this->writer->endElement();
 
         $this->urlsCount++;

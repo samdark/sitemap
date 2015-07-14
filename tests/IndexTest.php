@@ -5,6 +5,13 @@ use samdark\sitemap\Index;
 
 class IndexTest extends \PHPUnit_Framework_TestCase
 {
+    protected function assertIsValidIndex($fileName)
+    {
+        $xml = new \DOMDocument();
+        $xml->load($fileName);
+        $this->assertTrue($xml->schemaValidate(__DIR__ . '/siteindex.xsd'));
+    }
+
     public function testWritingFile()
     {
         $fileName = __DIR__ . '/sitemap_index.xml';
@@ -14,6 +21,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
         $index->write();
 
         $this->assertTrue(file_exists($fileName));
+        $this->assertIsValidIndex($fileName);
         unlink($fileName);
     }
 

@@ -5,9 +5,16 @@ use samdark\sitemap\Sitemap;
 
 class SitemapTest extends \PHPUnit_Framework_TestCase
 {
+    protected function assertIsValidSitemap($fileName)
+    {
+        $xml = new \DOMDocument();
+        $xml->load($fileName);
+        $this->assertTrue($xml->schemaValidate(__DIR__ . '/sitemap.xsd'));
+    }
+
     public function testWritingFile()
     {
-        $fileName = __DIR__ . '/sitemap.xml';
+        $fileName = __DIR__ . '/sitemap_regular.xml';
         $sitemap = new Sitemap($fileName);
         $sitemap->addItem('http://example.com/mylink1');
         $sitemap->addItem('http://example.com/mylink2', time());
@@ -16,6 +23,8 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         $sitemap->write();
 
         $this->assertTrue(file_exists($fileName));
+        $this->assertIsValidSitemap($fileName);
+
         unlink($fileName);
     }
 
@@ -43,6 +52,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         ];
         foreach ($expectedFiles as $expectedFile) {
             $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
+            $this->assertIsValidSitemap($expectedFile);
             unlink($expectedFile);
         }
 
@@ -66,25 +76,37 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
 
     public function testPriorityValidation()
     {
-        $this->setExpectedException('InvalidArgumentException');
-
         $fileName = __DIR__ . '/sitemap.xml';
         $sitemap = new Sitemap($fileName);
-        $sitemap->addItem('http://example.com/mylink1');
-        $sitemap->addItem('http://example.com/mylink2', time(), 'always', 2.0);
+
+        $exceptionCaught = false;
+        try {
+            $sitemap->addItem('http://example.com/mylink1');
+            $sitemap->addItem('http://example.com/mylink2', time(), 'always', 2.0);
+        } catch (\InvalidArgumentException $e) {
+            $exceptionCaught = true;
+        }
 
         unlink($fileName);
+
+        $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
 
     public function testLocationValidation()
     {
-        $this->setExpectedException('InvalidArgumentException');
-
         $fileName = __DIR__ . '/sitemap.xml';
         $sitemap = new Sitemap($fileName);
-        $sitemap->addItem('http://example.com/mylink1');
-        $sitemap->addItem('mylink2', time());
+
+        $exceptionCaught = false;
+        try {
+            $sitemap->addItem('http://example.com/mylink1');
+            $sitemap->addItem('notlink', time());
+        } catch (\InvalidArgumentException $e) {
+            $exceptionCaught = true;
+        }
 
         unlink($fileName);
+
+        $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
 }
