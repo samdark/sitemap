@@ -44,17 +44,24 @@ class Index
     /**
      * Adds sitemap link to the index file
      *
-     * @param string $url URL of the sitemap
+     * @param string $location URL of the sitemap
      * @param integer $lastModified unix timestamp of sitemap modification time
+     * @throws \InvalidArgumentException
      */
-    public function addSitemap($url, $lastModified = null)
+    public function addSitemap($location, $lastModified = null)
     {
+        if (false === filter_var($location, FILTER_VALIDATE_URL)){
+            throw new \InvalidArgumentException(
+                "The location must be a valid URL. You have specified: {$location}."
+            );
+        }
+
         if ($this->writer === null) {
             $this->createNewFile();
         }
 
         $this->writer->startElement('sitemap');
-        $this->writer->writeElement('loc', $url);
+        $this->writer->writeElement('loc', $location);
 
         if ($lastModified !== null) {
             $this->writer->writeElement('lastmod', date('c', $lastModified));

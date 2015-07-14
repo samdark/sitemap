@@ -69,14 +69,14 @@ class Sitemap
 
     /**
      * @param string $filePath path of the file to write to
+     * @throws \InvalidArgumentException
      */
     public function __construct($filePath)
     {
         $dir = dirname($filePath);
         if (!is_dir($dir)) {
             throw new \InvalidArgumentException(
-                'Please specify valid file path. Directory not exists'
-                . '. You have specified: ' . $dir . '.'
+                "Please specify valid file path. Directory not exists. You have specified: {$dir}."
             );
         }
 
@@ -154,9 +154,9 @@ class Sitemap
 
         $this->writer->startElement('url');
 
-        if(false === filter_var($location, FILTER_VALIDATE_URL)){
+        if (false === filter_var($location, FILTER_VALIDATE_URL)){
             throw new \InvalidArgumentException(
-                'The location must be a valid URL' . '. You have specified: ' . $location . '.'
+                "The location must be a valid URL. You have specified: {$location}."
             );
         }
 
@@ -165,8 +165,7 @@ class Sitemap
         if ($priority !== null) {
             if (!is_numeric($priority) || $priority < 0 || $priority > 1) {
                 throw new \InvalidArgumentException(
-                    'Please specify valid priority. Valid values range from 0.0 to 1.0'
-                    . '. You have specified: ' . $priority . '.'
+                    "Please specify valid priority. Valid values range from 0.0 to 1.0. You have specified: {$priority}."
                 );
             }
             $this->writer->writeElement('priority', $priority);
@@ -177,7 +176,7 @@ class Sitemap
                 throw new \InvalidArgumentException(
                     'Please specify valid changeFrequency. Valid values are: '
                     . implode(', ', $this->validFrequencies)
-                    . '. You have specified: ' . $changeFrequency . '.'
+                    . "You have specified: {$changeFrequency}."
                 );
             }
 

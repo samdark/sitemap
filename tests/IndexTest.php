@@ -16,4 +16,15 @@ class IndexTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(file_exists($fileName));
         unlink($fileName);
     }
+
+    public function testLocationValidation()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+
+        $fileName = __DIR__ . '/sitemap.xml';
+        $index = new Index($fileName);
+        $index->addSitemap('noturl');
+
+        unlink($fileName);
+    }
 }
