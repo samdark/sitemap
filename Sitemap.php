@@ -1,10 +1,11 @@
 <?php
+
 namespace samdark\sitemap;
 
 use XMLWriter;
 
 /**
- * A class for generating Sitemaps (http://www.sitemaps.org/)
+ * A class for generating Sitemaps (http://www.sitemaps.org/).
  *
  * @author Alexander Makarov <sam@rmcreative.ru>
  */
@@ -19,12 +20,12 @@ class Sitemap
     const NEVER = 'never';
 
     /**
-     * @var integer Maximum allowed number of URLs in a single file.
+     * @var int Maximum allowed number of URLs in a single file.
      */
     private $maxUrls = 50000;
 
     /**
-     * @var integer number of URLs added
+     * @var int number of URLs added
      */
     private $urlsCount = 0;
 
@@ -34,7 +35,7 @@ class Sitemap
     private $filePath;
 
     /**
-     * @var integer number of files written
+     * @var int number of files written
      */
     private $fileCount = 0;
 
@@ -44,7 +45,7 @@ class Sitemap
     private $writtenFilePaths = [];
 
     /**
-     * @var integer number of URLs to be kept in memory before writing it to file
+     * @var int number of URLs to be kept in memory before writing it to file
      */
     private $bufferSize = 1000;
 
@@ -58,9 +59,8 @@ class Sitemap
         self::WEEKLY,
         self::MONTHLY,
         self::YEARLY,
-        self::NEVER
+        self::NEVER,
     ];
-
 
     /**
      * @var XMLWriter
@@ -69,6 +69,7 @@ class Sitemap
 
     /**
      * @param string $filePath path of the file to write to
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct($filePath)
@@ -84,11 +85,11 @@ class Sitemap
     }
 
     /**
-     * Creats new file
+     * Creats new file.
      */
     private function createNewFile()
     {
-        $this->fileCount++;
+        ++$this->fileCount;
         $filePath = $this->getCurrentFilePath();
         $this->writtenFilePaths[] = $filePath;
         @unlink($filePath);
@@ -102,7 +103,7 @@ class Sitemap
     }
 
     /**
-     * Writes closing tags to current file
+     * Writes closing tags to current file.
      */
     private function finishFile()
     {
@@ -114,7 +115,7 @@ class Sitemap
     }
 
     /**
-     * Finishes writing
+     * Finishes writing.
      */
     public function write()
     {
@@ -122,7 +123,7 @@ class Sitemap
     }
 
     /**
-     * Flushes buffer into file
+     * Flushes buffer into file.
      */
     private function flush()
     {
@@ -130,12 +131,12 @@ class Sitemap
     }
 
     /**
-     * Adds a new item to sitemap
+     * Adds a new item to sitemap.
      *
-     * @param string $location location item URL
-     * @param integer $lastModified last modification timestamp
-     * @param float $changeFrequency change frquency. Use one of self:: contants here
-     * @param string $priority item's priority (0.0-1.0). Default null is equal to 0.5
+     * @param string $location        location item URL
+     * @param int    $lastModified    last modification timestamp
+     * @param float  $changeFrequency change frquency. Use one of self:: contants here
+     * @param string $priority        item's priority (0.0-1.0). Default null is equal to 0.5
      *
      * @throws \InvalidArgumentException
      */
@@ -154,7 +155,7 @@ class Sitemap
 
         $this->writer->startElement('url');
 
-        if (false === filter_var($location, FILTER_VALIDATE_URL)){
+        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException(
                 "The location must be a valid URL. You have specified: {$location}."
             );
@@ -170,8 +171,8 @@ class Sitemap
             if (!in_array($changeFrequency, $this->validFrequencies, true)) {
                 throw new \InvalidArgumentException(
                     'Please specify valid changeFrequency. Valid values are: '
-                    . implode(', ', $this->validFrequencies)
-                    . "You have specified: {$changeFrequency}."
+                    .implode(', ', $this->validFrequencies)
+                    ."You have specified: {$changeFrequency}."
                 );
             }
 
@@ -189,7 +190,7 @@ class Sitemap
 
         $this->writer->endElement();
 
-        $this->urlsCount++;
+        ++$this->urlsCount;
     }
 
     /**
@@ -202,42 +203,46 @@ class Sitemap
         }
 
         $parts = pathinfo($this->filePath);
-        return $parts['dirname'] . DIRECTORY_SEPARATOR . $parts['filename'] . '_' . $this->fileCount . '.' . $parts['extension'];
+
+        return $parts['dirname'].DIRECTORY_SEPARATOR.$parts['filename'].'_'.$this->fileCount.'.'.$parts['extension'];
     }
 
     /**
-     * Returns an array of URLs written
+     * Returns an array of URLs written.
      *
      * @param string $baseUrl base URL of all the sitemaps written
+     *
      * @return array URLs of sitemaps written
      */
     public function getSitemapUrls($baseUrl)
     {
         $urls = [];
         foreach ($this->writtenFilePaths as $file) {
-            $urls[] = $baseUrl . pathinfo($file, PATHINFO_BASENAME);
+            $urls[] = $baseUrl.pathinfo($file, PATHINFO_BASENAME);
         }
+
         return $urls;
     }
 
     /**
      * Sets maximum number of URLs to write in a single file.
      * Default is 50000.
-     * @param integer $number
+     *
+     * @param int $number
      */
     public function setMaxUrls($number)
     {
-        $this->maxUrls = (int)$number;
+        $this->maxUrls = (int) $number;
     }
 
     /**
      * Sets number of URLs to be kept in memory before writing it to file.
      * Default is 1000.
      *
-     * @param integer $number
+     * @param int $number
      */
     public function setBufferSize($number)
     {
-        $this->bufferSize = (int)$number;
+        $this->bufferSize = (int) $number;
     }
 }

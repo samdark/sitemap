@@ -1,10 +1,11 @@
 <?php
+
 namespace samdark\sitemap;
 
 use XMLWriter;
 
 /**
- * A class for generating Sitemap index (http://www.sitemaps.org/)
+ * A class for generating Sitemap index (http://www.sitemaps.org/).
  *
  * @author Alexander Makarov <sam@rmcreative.ru>
  */
@@ -29,7 +30,7 @@ class Index
     }
 
     /**
-     * Creates new file
+     * Creates new file.
      */
     private function createNewFile()
     {
@@ -42,15 +43,16 @@ class Index
     }
 
     /**
-     * Adds sitemap link to the index file
+     * Adds sitemap link to the index file.
      *
-     * @param string $location URL of the sitemap
-     * @param integer $lastModified unix timestamp of sitemap modification time
+     * @param string $location     URL of the sitemap
+     * @param int    $lastModified unix timestamp of sitemap modification time
+     *
      * @throws \InvalidArgumentException
      */
     public function addSitemap($location, $lastModified = null)
     {
-        if (false === filter_var($location, FILTER_VALIDATE_URL)){
+        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException(
                 "The location must be a valid URL. You have specified: {$location}."
             );
@@ -78,7 +80,7 @@ class Index
     }
 
     /**
-     * Finishes writing
+     * Finishes writing.
      */
     public function write()
     {
