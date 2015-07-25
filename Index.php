@@ -50,7 +50,7 @@ class Index
      */
     public function addSitemap($location, $lastModified = null)
     {
-        if (false === filter_var($location, FILTER_VALIDATE_URL)){
+        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException(
                 "The location must be a valid URL. You have specified: {$location}."
             );
