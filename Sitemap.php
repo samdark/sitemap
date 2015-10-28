@@ -18,6 +18,9 @@ class Sitemap
     const YEARLY = 'yearly';
     const NEVER = 'never';
 
+    // hreflang locations, DeepLinking, AppIndex
+    const XHTML_NS = 'http://www.w3.org/1999/xhtml';
+
     /**
      * @var integer Maximum allowed number of URLs in a single file.
      */
@@ -68,6 +71,12 @@ class Sitemap
     private $writer;
 
     /**
+     * write namespace to sitemap
+     * @var boolean
+     */
+    private $writeXhtml = false;
+
+    /**
      * @param string $filePath path of the file to write to
      * @throws \InvalidArgumentException
      */
@@ -99,6 +108,9 @@ class Sitemap
         $this->writer->setIndent(true);
         $this->writer->startElement('urlset');
         $this->writer->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+
+        if($this->writeXhtml)
+            $this->writer->writeAttribute('xmlns:xhtml', self::XHTML_NS);
     }
 
     /**
@@ -132,7 +144,7 @@ class Sitemap
     /**
      * Adds a new item to sitemap
      *
-     * @param string $location location item URL
+     * @param string|array $location location item URL or array of links
      * @param integer $lastModified last modification timestamp
      * @param float $changeFrequency change frquency. Use one of self:: contants here
      * @param string $priority item's priority (0.0-1.0). Default null is equal to 0.5
@@ -154,13 +166,34 @@ class Sitemap
 
         $this->writer->startElement('url');
 
-        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
+        $isLocactionArray = is_array($location);
+
+        if (!$isLocactionArray && false === filter_var($location, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException(
                 "The location must be a valid URL. You have specified: {$location}."
             );
         }
 
-        $this->writer->writeElement('loc', $location);
+        if($isLocactionArray) {
+            foreach($location as $idx=>$item) {
+
+                if($idx == 'loc') {
+                    $this->writer->writeElement('loc', $item);
+
+                } else {
+                    $this->writer->startElementNS(null, 'xhtml:link', null);
+
+                    foreach($item as $attributeName => $attributeValue)
+                        $this->writer->writeAttribute($attributeName, $attributeValue);
+
+                    $this->writer->endElement();
+                }
+
+            }
+        } else {
+            $this->writer->writeElement('loc', $location);
+        }
+
 
         if ($lastModified !== null) {
             $this->writer->writeElement('lastmod', date('c', $lastModified));
@@ -239,5 +272,10 @@ class Sitemap
     public function setBufferSize($number)
     {
         $this->bufferSize = (int)$number;
+    }
+
+    public function setXhtml($value)
+    {
+        $this->writeXhtml = $value;
     }
 }

@@ -109,4 +109,40 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
+
+    public function testArrayOfLocations()
+    {
+        $fileName = __DIR__ . '/sitemap.xml';
+
+        $sitemap = new Sitemap($fileName);
+
+        // enable xhtml
+        $sitemap->setXhtml(true);
+
+        $sitemap
+        ->addItem(array(
+            'loc'  => 'http://www.example.com.ua/example/gizmos',
+            'ru' => array(
+                'href' => 'http://www.example.ru/example/gizmos',
+                'rel'  => 'alternate',
+                'hreflang' => 'ru',
+            ),
+            'ua' => array(
+                'href' => 'http://www.example.com.ua/example/gizmos',
+                'rel'  => 'alternate',
+                'hreflang' => 'ua',
+            ),
+            'android' => array(
+                'href' => 'android-app://com.example.android/example/gizmos',
+                'rel'  => 'alternate',
+            ),
+        ));
+
+        $sitemap->write();
+
+        $this->assertTrue(file_exists($fileName));
+        // $this->assertIsValidSitemap($fileName);
+
+        unlink($fileName);
+    }
 }
