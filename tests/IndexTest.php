@@ -35,4 +35,20 @@ class IndexTest extends \PHPUnit_Framework_TestCase
 
         unlink($fileName);
     }
+
+    public function testWritingFileGzipped()
+    {
+        $fileName = __DIR__ . '/sitemap_index.xml.gz';
+        $index = new Index($fileName);
+        $index->setGzip(true);
+        $index->addSitemap('http://example.com/sitemap.xml');
+        $index->addSitemap('http://example.com/sitemap_2.xml', time());
+        $index->write();
+
+        $this->assertTrue(file_exists($fileName));
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $this->assertEquals('application/x-gzip', $finfo->file($fileName));
+        $this->assertIsValidIndex('compress.zlib://' . $fileName);
+        unlink($fileName);
+    }
 }

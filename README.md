@@ -80,7 +80,7 @@ $index->write();
 Options
 -------
 
-There are two methods to configre `Sitemap` instance:
+There are three methods to configure `Sitemap` instance:
  
 - `setMaxUrls($number)`. Sets maximum number of URLs to write in a single file.
   Default is 50000 which is the limit according to specification and most of
@@ -88,6 +88,13 @@ There are two methods to configre `Sitemap` instance:
 - `setBufferSize($number)`. Sets number of URLs to be kept in memory before writing it to file.
   Default is 1000. If you have more memory consider increasing it. If 1000 URLs doesn't fit,
   decrease it.
+- `setGzip($bool)`. Sets whether the resulting sitemap files will be gzipped or not.
+  Default is `false`. `zlib` extension must be enabled to use this feature.
+
+There is one method to configure `Index` instance:
+
+- `setGzip($bool)`. Sets whether the resulting index file will be gzipped or not.
+  Default is `false`. `zlib` extension must be enabled to use this feature.
 
 Running tests
 -------------
