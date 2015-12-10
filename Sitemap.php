@@ -34,6 +34,11 @@ class Sitemap
     private $filePath;
 
     /**
+     * @var resource handle of the file to be written
+     */
+    private $fileHandle;
+
+    /**
      * @var integer number of files written
      */
     private $fileCount = 0;
@@ -66,7 +71,6 @@ class Sitemap
      */
     private $gzip = false;
 
-
     /**
      * @var XMLWriter
      */
@@ -98,6 +102,11 @@ class Sitemap
         $this->writtenFilePaths[] = $filePath;
         @unlink($filePath);
 
+        if ($this->gzip) {
+            $filePath = 'compress.zlib://' . $filePath;
+        }
+        $this->fileHandle = fopen($filePath, 'w');
+
         $this->writer = new XMLWriter();
         $this->writer->openMemory();
         $this->writer->startDocument('1.0', 'UTF-8');
@@ -115,6 +124,8 @@ class Sitemap
             $this->writer->endElement();
             $this->writer->endDocument();
             $this->flush();
+            fclose($this->fileHandle);
+            $this->fileHandle = null;
         }
     }
 
@@ -131,11 +142,7 @@ class Sitemap
      */
     private function flush()
     {
-        $filePath = $this->getCurrentFilePath();
-        if ($this->gzip) {
-            $filePath = 'compress.zlib://' . $filePath;
-        }
-        file_put_contents($filePath, $this->writer->flush(true), FILE_APPEND);
+        fwrite($this->fileHandle, $this->writer->flush(true));
     }
 
     /**
