@@ -29,7 +29,8 @@ How to use it
 -------------
 
 ```php
-use samdark\sitemap;
+use samdark\sitemap\Sitemap;
+use samdark\sitemap\Index;
 
 // create sitemap
 $sitemap = new Sitemap(__DIR__ . '/sitemap.xml');
