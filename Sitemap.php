@@ -34,6 +34,11 @@ class Sitemap
     private $filePath;
 
     /**
+     * @var resource handle of the file to be written
+     */
+    private $fileHandle;
+
+    /**
      * @var integer number of files written
      */
     private $fileCount = 0;
@@ -61,6 +66,10 @@ class Sitemap
         self::NEVER
     ];
 
+    /**
+     * @var bool whether to gzip the resulting files or not
+     */
+    private $gzip = false;
 
     /**
      * @var XMLWriter
@@ -93,6 +102,11 @@ class Sitemap
         $this->writtenFilePaths[] = $filePath;
         @unlink($filePath);
 
+        if ($this->gzip) {
+            $filePath = 'compress.zlib://' . $filePath;
+        }
+        $this->fileHandle = fopen($filePath, 'w');
+
         $this->writer = new XMLWriter();
         $this->writer->openMemory();
         $this->writer->startDocument('1.0', 'UTF-8');
@@ -110,6 +124,8 @@ class Sitemap
             $this->writer->endElement();
             $this->writer->endDocument();
             $this->flush();
+            fclose($this->fileHandle);
+            $this->fileHandle = null;
         }
     }
 
@@ -126,7 +142,7 @@ class Sitemap
      */
     private function flush()
     {
-        file_put_contents($this->getCurrentFilePath(), $this->writer->flush(true), FILE_APPEND);
+        fwrite($this->fileHandle, $this->writer->flush(true));
     }
 
     /**
@@ -202,6 +218,13 @@ class Sitemap
         }
 
         $parts = pathinfo($this->filePath);
+        if ($parts['extension'] == 'gz') {
+            $filenameParts = pathinfo($parts['filename']);
+            if (!empty($filenameParts['extension'])) {
+                $parts['filename'] = $filenameParts['filename'];
+                $parts['extension'] = $filenameParts['extension'] . '.gz';
+            }
+        }
         return $parts['dirname'] . DIRECTORY_SEPARATOR . $parts['filename'] . '_' . $this->fileCount . '.' . $parts['extension'];
     }
 
@@ -239,5 +262,21 @@ class Sitemap
     public function setBufferSize($number)
     {
         $this->bufferSize = (int)$number;
+    }
+
+    /**
+     * Sets whether the resulting files will be gzipped or not.
+     * @param bool $bool
+     */
+    public function setGzip($bool)
+    {
+        $bool = (bool)$bool;
+        if ($bool && !extension_loaded('zlib')) {
+            throw new \RuntimeException('Zlib extension must be enabled to gzip the sitemap.');
+        }
+        if ($this->urlsCount && $bool != $this->gzip) {
+            throw new \RuntimeException('Cannot change the gzip value once items have been added to the sitemap.');
+        }
+        $this->gzip = $bool;
     }
 }
