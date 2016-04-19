@@ -184,7 +184,7 @@ class Sitemap
                     "Please specify valid priority. Valid values range from 0.0 to 1.0. You have specified: {$priority}."
                 );
             }
-            $this->writer->writeElement('priority', str_replace(',', '.', (string)$priority));
+            $this->writer->writeElement('priority', number_format($priority, 1, '.'));
         }
 
         $this->writer->endElement();
