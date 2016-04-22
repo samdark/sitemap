@@ -1,4 +1,3 @@
-
 {
     "name": "samdark/sitemap",
     "description": "Sitemap and sitemap index builder",
@@ -21,9 +20,12 @@
     "require": {
         "php": ">=5.4.0"
     },
+    "require-dev": {
+        "phpunit/phpunit": "5.3.*"
+    },
     "autoload": {
         "psr-4": {
-            "samdark\\sitemap\\": ""
+            "samdark\\sitemap\\": "src"
         }
     }
 }

@@ -10,13 +10,15 @@ use XMLWriter;
  */
 class Sitemap
 {
-    const ALWAYS = 'always';
-    const HOURLY = 'hourly';
-    const DAILY = 'daily';
-    const WEEKLY = 'weekly';
-    const MONTHLY = 'monthly';
-    const YEARLY = 'yearly';
-    const NEVER = 'never';
+    /**
+     * @var integer Maximum allowed number of bytes per single file.
+     */
+    private $maxFileSize = 10485760;
+
+    /**
+     * @var integer Current file size written
+     */
+    private $fileSize = 0;
 
     /**
      * @var integer Maximum allowed number of URLs in a single file.
@@ -48,19 +50,6 @@ class Sitemap
      */
     private $bufferSize = 1000;
 
-    /**
-     * @var array valid values for frequency parameter
-     */
-    private $validFrequencies = [
-        self::ALWAYS,
-        self::HOURLY,
-        self::DAILY,
-        self::WEEKLY,
-        self::MONTHLY,
-        self::YEARLY,
-        self::NEVER
-    ];
-
 
     /**
      * @var XMLWriter
@@ -88,6 +77,7 @@ class Sitemap
      */
     private function createNewFile()
     {
+        $this->fileSize = 0;
         $this->fileCount++;
         $filePath = $this->getCurrentFilePath();
         $this->writtenFilePaths[] = $filePath;
@@ -126,24 +116,48 @@ class Sitemap
      */
     private function flush()
     {
-        file_put_contents($this->getCurrentFilePath(), $this->writer->flush(true), FILE_APPEND);
+        $buffer = $this->writer->flush(true);
+        $this->fileSize += mb_strlen($buffer, '8bit');
+        file_put_contents($this->getCurrentFilePath(), $buffer, FILE_APPEND);
+    }
+
+    private function getStringFromUrl(Url $url)
+    {
+        $writer = new XMLWriter();
+        $writer->openMemory();
+
+        $writer->startElement('url');
+
+        $writer->writeElement('loc', $url->getLocation());
+
+        if ($url->getLastModified() !== null) {
+            $writer->writeElement('lastmod', date('c', $url->getLastModified()));
+        }
+
+        if ($url->getChangeFrequency() !== null) {
+            $writer->writeElement('changefreq', $url->getChangeFrequency());
+        }
+
+        if ($url->getPriority() !== null) {
+            $writer->writeElement('priority', $url->getPriority());
+        }
+
+        $writer->endElement();
+
+        return $writer->flush();
     }
 
     /**
-     * Adds a new item to sitemap
-     *
-     * @param string $location location item URL
-     * @param integer $lastModified last modification timestamp
-     * @param float $changeFrequency change frquency. Use one of self:: contants here
-     * @param string $priority item's priority (0.0-1.0). Default null is equal to 0.5
-     *
-     * @throws \InvalidArgumentException
+     * Adds an URL to sitemap
+     * @param Url $url
      */
-    public function addItem($location, $lastModified = null, $changeFrequency = null, $priority = null)
+    public function addItem(Url $url)
     {
+        $urlString = $this->getStringFromUrl($url);
+
         if ($this->urlsCount === 0) {
             $this->createNewFile();
-        } elseif ($this->urlsCount % $this->maxUrls === 0) {
+        } elseif ($this->urlsCount % $this->maxUrls === 0 || !$this->canWriteString($urlString)) {
             $this->finishFile();
             $this->createNewFile();
         }
@@ -152,42 +166,7 @@ class Sitemap
             $this->flush();
         }
 
-        $this->writer->startElement('url');
-
-        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
-            throw new \InvalidArgumentException(
-                "The location must be a valid URL. You have specified: {$location}."
-            );
-        }
-
-        $this->writer->writeElement('loc', $location);
-
-        if ($lastModified !== null) {
-            $this->writer->writeElement('lastmod', date('c', $lastModified));
-        }
-
-        if ($changeFrequency !== null) {
-            if (!in_array($changeFrequency, $this->validFrequencies, true)) {
-                throw new \InvalidArgumentException(
-                    'Please specify valid changeFrequency. Valid values are: '
-                    . implode(', ', $this->validFrequencies)
-                    . "You have specified: {$changeFrequency}."
-                );
-            }
-
-            $this->writer->writeElement('changefreq', $changeFrequency);
-        }
-
-        if ($priority !== null) {
-            if (!is_numeric($priority) || $priority < 0 || $priority > 1) {
-                throw new \InvalidArgumentException(
-                    "Please specify valid priority. Valid values range from 0.0 to 1.0. You have specified: {$priority}."
-                );
-            }
-            $this->writer->writeElement('priority', $priority);
-        }
-
-        $this->writer->endElement();
+        $this->writer->writeRaw($urlString);
 
         $this->urlsCount++;
     }
@@ -239,5 +218,22 @@ class Sitemap
     public function setBufferSize($number)
     {
         $this->bufferSize = (int)$number;
+    }
+
+    /**
+     * Sets maximum allowed number of bytes per single file.
+     * Default is 10485760 bytes which equals to 10 megabytes.
+     *
+     * @param integer $bytes
+     */
+    public function setMaxFileSize($bytes)
+    {
+        $this->maxFileSize = (int)$bytes;
+    }
+
+    private function canWriteString($string)
+    {
+        $extraForClosingTags = 20;
+        return $this->fileSize + mb_strlen($string, '8bit') + $extraForClosingTags < $this->maxFileSize;
     }
 }

@@ -10,6 +10,8 @@ use XMLWriter;
  */
 class Index
 {
+    // can include up to 1,000 Sitemaps and must not exceed 10MB (10,485,760 bytes). You can also use gzip to compress your Sitemaps.
+    
     /**
      * @var XMLWriter
      */

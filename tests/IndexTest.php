@@ -5,11 +5,14 @@ use samdark\sitemap\Index;
 
 class IndexTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @param $fileName
+     */
     protected function assertIsValidIndex($fileName)
     {
         $xml = new \DOMDocument();
         $xml->load($fileName);
-        $this->assertTrue($xml->schemaValidate(__DIR__ . '/siteindex.xsd'));
+        static::assertTrue($xml->schemaValidate(__DIR__ . '/siteindex.xsd'));
     }
 
     public function testWritingFile()
@@ -20,14 +23,14 @@ class IndexTest extends \PHPUnit_Framework_TestCase
         $index->addSitemap('http://example.com/sitemap_2.xml', time());
         $index->write();
 
-        $this->assertTrue(file_exists($fileName));
+        static::assertFileExists($fileName);
         $this->assertIsValidIndex($fileName);
         unlink($fileName);
     }
 
     public function testLocationValidation()
     {
-        $this->setExpectedException('InvalidArgumentException');
+        $this->expectException('InvalidArgumentException');
 
         $fileName = __DIR__ . '/sitemap.xml';
         $index = new Index($fileName);
