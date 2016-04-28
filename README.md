@@ -89,6 +89,7 @@ There are two methods to configre `Sitemap` instance:
 - `setBufferSize($number)`. Sets number of URLs to be kept in memory before writing it to file.
   Default is 1000. If you have more memory consider increasing it. If 1000 URLs doesn't fit,
   decrease it.
+- `setUseIndent($bool)`. Sets if XML should be indented. Default is true.
 
 Running tests
 -------------
