@@ -49,6 +49,11 @@ class Sitemap
     private $bufferSize = 1000;
 
     /**
+     * @var bool if XML should be indented
+     */
+    private $useIndent = true;
+
+    /**
      * @var array valid values for frequency parameter
      */
     private $validFrequencies = [
@@ -96,7 +101,7 @@ class Sitemap
         $this->writer = new XMLWriter();
         $this->writer->openMemory();
         $this->writer->startDocument('1.0', 'UTF-8');
-        $this->writer->setIndent(true);
+        $this->writer->setIndent($this->useIndent);
         $this->writer->startElement('urlset');
         $this->writer->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
     }
@@ -239,5 +244,17 @@ class Sitemap
     public function setBufferSize($number)
     {
         $this->bufferSize = (int)$number;
+    }
+
+
+    /**
+     * Sets if XML should be indented.
+     * Default is true.
+     *
+     * @param bool $value
+     */
+    public function setUseIndent($value)
+    {
+        $this->useIndent = (bool)$value;
     }
 }
