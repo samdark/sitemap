@@ -23,18 +23,21 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         $sitemap->addItem(new Url('http://example.com/mylink1'));
         $sitemap->addItem(
             (new Url('http://example.com/mylink2'))
-                ->lastModified(time())
+                ->setLastModified(time())
         );
         $sitemap->addItem(
             (new Url('http://example.com/mylink3'))
-                ->lastModified(time())
-                ->changeFrequency(Url::HOURLY)
+                ->setLastModified(time())
+                ->setChangeFrequency(Url::HOURLY)
         );
         $sitemap->addItem(
             (new Url('http://example.com/mylink4'))
-                ->lastModified(time())
-                ->changeFrequency(Url::DAILY)
-                ->priority(0.3)
+                ->setLastModified(time())
+                ->setChangeFrequency(Url::DAILY)
+                ->setPriority(0.3)
+        );
+        $sitemap->addItem(
+            (new Url('http://example.com/mylink5', time(), Url::DAILY, 0.3))
         );
         $sitemap->write();
 
@@ -52,7 +55,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         for ($i = 0; $i < 20; $i++) {
             $sitemap->addItem(
                 (new Url('http://example.com/mylink' . $i))
-                    ->lastModified(time())
+                    ->setLastModified(time())
             );
         }
         $sitemap->write();
