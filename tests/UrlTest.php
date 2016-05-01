@@ -10,7 +10,7 @@ class UrlTest extends \PHPUnit_Framework_TestCase
         $this->expectException('InvalidArgumentException');
 
         (new Url('http://example.com/mylink2'))
-                ->changeFrequency('invalid');
+                ->setChangeFrequency('invalid');
     }
 
     public function testPriorityValidation()
@@ -18,7 +18,7 @@ class UrlTest extends \PHPUnit_Framework_TestCase
         $this->expectException('InvalidArgumentException');
 
         (new Url('http://example.com/mylink2'))
-            ->priority(2.0);
+            ->setPriority(2.0);
     }
 
     public function testLocationValidation()
