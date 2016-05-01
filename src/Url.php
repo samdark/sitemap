@@ -3,6 +3,8 @@ namespace samdark\sitemap;
 
 /**
  * Sitemap URL
+ * 
+ * @see http://sitemaps.org/protocol.html#xmlTagDefinitions
  */
 class Url
 {
@@ -29,7 +31,6 @@ class Url
 
     /**
      * @var integer maximum URL length
-     * @see https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
      */
     private $maxUrlLength = 2047;
 
@@ -39,26 +40,21 @@ class Url
     private $priority;
 
     /**
-     * @return mixed
-     */
-    public function getLocation()
-    {
-        return $this->location;
-    }
-
-    /**
      * Url constructor.
-     * @param string $location location item URL
+     * @param string $location URL of the page.
+     * @param string $lastModified the date of last modification of the file
+     * @param string $changeFrequency how frequently the page is likely to change
+     * @param string|float $priority the priority of this URL relative to other
+     * URLs on site
      * @throws \InvalidArgumentException
      */
-    public function __construct($location)
+    public function __construct($location, $lastModified = null, $changeFrequency = null, $priority = null)
     {
         if (false === filter_var($location, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException(
                 "The location must be a valid URL. You have specified: {$location}."
             );
         }
-
         if (mb_strlen($location, 'UTF-8') > $this->maxUrlLength) {
             $maxLength = $this->maxUrlLength + 1;
             throw new \InvalidArgumentException(
@@ -66,10 +62,28 @@ class Url
             );
         }
         $this->location = $location;
+        
+        if ($lastModified) {
+            $this->setLastModified($lastModified);
+        }
+        if ($changeFrequency) {
+            $this->setChangeFrequency($changeFrequency);
+        }
+        if ($priority !== null) {
+            $this->setPriority($priority);
+        }
     }
 
     /**
-     * @return mixed
+     * @return string
+     */
+    public function getLocation()
+    {
+        return $this->location;
+    }
+
+    /**
+     * @return string|null
      */
     public function getLastModified()
     {
@@ -77,17 +91,20 @@ class Url
     }
 
     /**
-     * @param integer $lastModified last modification timestamp
+     * Sets a date of last modification of the file. This date should be in
+     * W3C Datetime format.
+     * @see http://w3.org/TR/NOTE-datetime
+     * @param string $lastModified
      * @return $this
      */
-    public function lastModified($lastModified)
+    public function setLastModified($lastModified)
     {
-        $this->lastModified = $lastModified;
+        $this->lastModified = (string)$lastModified;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getChangeFrequency()
     {
@@ -95,11 +112,13 @@ class Url
     }
 
     /**
-     * @param string $changeFrequency change frquency. Use one of self:: contants here
+     * Sets how frequently the page is likely to change. Use one of class
+     * contants here.
+     * @param string $changeFrequency
      * @throws \InvalidArgumentException
-     * @return $this
+     * @return self
      */
-    public function changeFrequency($changeFrequency)
+    public function setChangeFrequency($changeFrequency)
     {
         if (!in_array($changeFrequency, $this->validFrequencies, true)) {
             throw new \InvalidArgumentException(
@@ -113,7 +132,7 @@ class Url
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getPriority()
     {
@@ -121,18 +140,20 @@ class Url
     }
 
     /**
-     * @param float $priority item's priority (0.0-1.0). Default null is equal to 0.5
+     * Sets a priority of this URL relative to other URLs on your site. Valid values
+     * range from 0.0 to 1.0. The default priority of a page is 0.5.
+     * @param string|float $priority
      * @throws \InvalidArgumentException
-     * @return $this
+     * @return self
      */
-    public function priority($priority)
+    public function setPriority($priority)
     {
         if (!is_numeric($priority) || $priority < 0 || $priority > 1) {
             throw new \InvalidArgumentException(
                 "Please specify valid priority. Valid values range from 0.0 to 1.0. You have specified: {$priority}."
             );
         }
-        $this->priority = $priority;
+        $this->priority = number_format($priority, 1, '.', ',');
         return $this;
     }
 }
