@@ -41,7 +41,7 @@ class Sitemap
     /**
      * @var array path of files written
      */
-    private $writtenFilePaths = [];
+    private $writtenFilePaths = array();
 
     /**
      * @var integer number of URLs to be kept in memory before writing it to file
@@ -56,7 +56,7 @@ class Sitemap
     /**
      * @var array valid values for frequency parameter
      */
-    private $validFrequencies = [
+    private $validFrequencies = array(
         self::ALWAYS,
         self::HOURLY,
         self::DAILY,
@@ -64,7 +64,7 @@ class Sitemap
         self::MONTHLY,
         self::YEARLY,
         self::NEVER
-    ];
+    );
 
 
     /**
@@ -155,7 +155,6 @@ class Sitemap
 
         if ($this->urlsCount % $this->bufferSize === 0) {
             $this->flush();
-        }
 
         $this->writer->startElement('url');
 
@@ -218,7 +217,7 @@ class Sitemap
      */
     public function getSitemapUrls($baseUrl)
     {
-        $urls = [];
+        $urls = array();
         foreach ($this->writtenFilePaths as $file) {
             $urls[] = $baseUrl . pathinfo($file, PATHINFO_BASENAME);
         }
