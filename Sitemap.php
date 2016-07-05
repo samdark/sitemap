@@ -155,7 +155,7 @@ class Sitemap
 
         if ($this->urlsCount % $this->bufferSize === 0) {
             $this->flush();
-
+        }
         $this->writer->startElement('url');
 
         if (false === filter_var($location, FILTER_VALIDATE_URL)) {
