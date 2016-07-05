@@ -38,7 +38,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         }
         $sitemap->write();
 
-        $expectedFiles = [
+        $expectedFiles = array(
             __DIR__ . '/' .'sitemap_multi.xml',
             __DIR__ . '/' .'sitemap_multi_2.xml',
             __DIR__ . '/' .'sitemap_multi_3.xml',
@@ -49,7 +49,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
             __DIR__ . '/' .'sitemap_multi_8.xml',
             __DIR__ . '/' .'sitemap_multi_9.xml',
             __DIR__ . '/' .'sitemap_multi_10.xml',
-        ];
+        );
         foreach ($expectedFiles as $expectedFile) {
             $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
             $this->assertIsValidSitemap($expectedFile);
