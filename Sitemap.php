@@ -89,6 +89,15 @@ class Sitemap
     }
 
     /**
+     * Get array of generated files
+     * @return array
+     */
+    public function getWrittenFilePath()
+    {
+        return $writtenFilePaths;
+    }
+    
+    /**
      * Creates new file
      */
     private function createNewFile()
