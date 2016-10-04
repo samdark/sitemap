@@ -94,7 +94,7 @@ class Sitemap
      */
     public function getWrittenFilePath()
     {
-        return $writtenFilePaths;
+        return $this->writtenFilePaths;
     }
     
     /**
