@@ -150,7 +150,7 @@ class Sitemap
      * @param string $location
      * @throws \InvalidArgumentException
      */
-    public function validateLocation($location) {
+    protected function validateLocation($location) {
         if (false === filter_var($location, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException(
                 "The location must be a valid URL. You have specified: {$location}."
