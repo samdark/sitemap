@@ -144,6 +144,21 @@ class Sitemap
     }
 
     /**
+     * Takes a string and validates, if the string
+     * is a valid url
+     *
+     * @param string $location
+     * @throws \InvalidArgumentException
+     */
+    protected function validateLocation($location) {
+        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
+            throw new \InvalidArgumentException(
+                "The location must be a valid URL. You have specified: {$location}."
+            );
+        }
+    }
+    
+    /**
      * Adds a new item to sitemap
      *
      * @param string $location location item URL
@@ -167,12 +182,8 @@ class Sitemap
         }
         $this->writer->startElement('url');
 
-        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
-            throw new \InvalidArgumentException(
-                "The location must be a valid URL. You have specified: {$location}."
-            );
-        }
-
+        $this->validateLocation($location);
+        
         $this->writer->writeElement('loc', $location);
 
         if ($lastModified !== null) {
