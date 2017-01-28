@@ -144,7 +144,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         }
         $sitemap->write();
 
-        $expectedFiles = [
+        $expectedFiles = array(
             __DIR__ . '/' .'sitemap_multi_gzipped.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_2.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_3.xml.gz',
@@ -155,7 +155,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
             __DIR__ . '/' .'sitemap_multi_gzipped_8.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_9.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_10.xml.gz',
-        ];
+        );
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
         foreach ($expectedFiles as $expectedFile) {
             $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
