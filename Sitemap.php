@@ -99,13 +99,22 @@ class Sitemap
     
     /**
      * Creates new file
+     * @throws \RuntimeException if file is not writeable
      */
     private function createNewFile()
     {
         $this->fileCount++;
         $filePath = $this->getCurrentFilePath();
         $this->writtenFilePaths[] = $filePath;
-        @unlink($filePath);
+
+        if (file_exists($filePath)) {
+            $filePath = realpath($filePath);
+            if (is_writable($filePath)) {
+                unlink($filePath);
+            } else {
+                throw new \RuntimeException("File \"$filePath\" is not writable.");
+            }
+        }
 
         $this->writer = new XMLWriter();
         $this->writer->openMemory();

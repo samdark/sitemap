@@ -98,5 +98,5 @@ In order to run tests perform the following commands:
 
 ```
 composer install
-phpunit
+./vendor/bin/phpunit
 ```
