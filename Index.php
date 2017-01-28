@@ -23,7 +23,7 @@ class Index
     /**
      * @var bool whether to gzip the resulting file or not
      */
-    private $gzip = false;
+    private $useGzip = false;
 
     /**
      * @param string $filePath index file path
@@ -91,8 +91,8 @@ class Index
             $this->writer->endElement();
             $this->writer->endDocument();
             $filePath = $this->getFilePath();
-            if ($this->gzip) {
-                $filePath = 'compress.zlib://'.$filePath;
+            if ($this->useGzip) {
+                $filePath = 'compress.zlib://' . $filePath;
             }
             file_put_contents($filePath, $this->writer->flush());
         }
@@ -100,14 +100,14 @@ class Index
 
     /**
      * Sets whether the resulting file will be gzipped or not.
-     * @param bool $bool
+     * @param bool $value
+     * @throws \RuntimeException when trying to enable gzip while zlib is not available
      */
-    public function setGzip($bool)
+    public function setUseGzip($value)
     {
-        $gzip = (bool)$bool;
-        if ($bool && !extension_loaded('zlib')) {
+        if ($value && !extension_loaded('zlib')) {
             throw new \RuntimeException('Zlib extension must be installed to gzip the sitemap.');
         }
-        $this->gzip = $bool;
+        $this->useGzip = $value;
     }
 }

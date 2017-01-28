@@ -5,6 +5,10 @@ use samdark\sitemap\Sitemap;
 
 class SitemapTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * Asserts validity of simtemap according to XSD schema
+     * @param string $fileName
+     */
     protected function assertIsValidSitemap($fileName)
     {
         $xml = new \DOMDocument();
@@ -114,7 +118,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
     {
         $fileName = __DIR__ . '/sitemap_gzipped.xml.gz';
         $sitemap = new Sitemap($fileName);
-        $sitemap->setGzip(true);
+        $sitemap->setUseGzip(true);
         $sitemap->addItem('http://example.com/mylink1');
         $sitemap->addItem('http://example.com/mylink2', time());
         $sitemap->addItem('http://example.com/mylink3', time(), Sitemap::HOURLY);
@@ -132,7 +136,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
     public function testMultipleFilesGzipped()
     {
         $sitemap = new Sitemap(__DIR__ . '/sitemap_multi_gzipped.xml.gz');
-        $sitemap->setGzip(true);
+        $sitemap->setUseGzip(true);
         $sitemap->setMaxUrls(2);
 
         for ($i = 0; $i < 20; $i++) {

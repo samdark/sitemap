@@ -40,7 +40,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
     {
         $fileName = __DIR__ . '/sitemap_index.xml.gz';
         $index = new Index($fileName);
-        $index->setGzip(true);
+        $index->setUseGzip(true);
         $index->addSitemap('http://example.com/sitemap.xml');
         $index->addSitemap('http://example.com/sitemap_2.xml', time());
         $index->write();
