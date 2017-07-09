@@ -8,12 +8,15 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
     /**
      * Asserts validity of simtemap according to XSD schema
      * @param string $fileName
+     * @param bool $xhtml
      */
-    protected function assertIsValidSitemap($fileName)
+    protected function assertIsValidSitemap($fileName, $xhtml = false)
     {
+        $xsdFileName = $xhtml ? 'sitemap_xhtml.xsd' : 'sitemap.xsd';
+
         $xml = new \DOMDocument();
         $xml->load($fileName);
-        $this->assertTrue($xml->schemaValidate(__DIR__ . '/sitemap.xsd'));
+        $this->assertTrue($xml->schemaValidate(__DIR__ . '/' . $xsdFileName));
     }
 
     protected function assertIsOneMemberGzipFile($fileName)
@@ -74,6 +77,37 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         $this->assertContains('http://example.com/sitemap_multi_10.xml', $urls);
     }
 
+
+    public function testMultiLanguageSitemap()
+    {
+        $fileName = __DIR__ . '/sitemap_multi_language.xml';
+        $sitemap = new Sitemap($fileName, true);
+        $sitemap->addItem('http://example.com/mylink1');
+
+        $sitemap->addItem([
+            'ru' => 'http://example.com/ru/mylink2',
+            'en' => 'http://example.com/en/mylink2',
+        ], time());
+
+        $sitemap->addItem([
+            'ru' => 'http://example.com/ru/mylink3',
+            'en' => 'http://example.com/en/mylink3',
+        ], time(), Sitemap::HOURLY);
+
+        $sitemap->addItem([
+            'ru' => 'http://example.com/ru/mylink4',
+            'en' => 'http://example.com/en/mylink4',
+        ], time(), Sitemap::DAILY, 0.3);
+
+        $sitemap->write();
+
+        $this->assertTrue(file_exists($fileName));
+        $this->assertIsValidSitemap($fileName, true);
+
+        unlink($fileName);
+    }
+
+
     public function testFrequencyValidation()
     {
         $this->setExpectedException('InvalidArgumentException');
@@ -113,6 +147,32 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         try {
             $sitemap->addItem('http://example.com/mylink1');
             $sitemap->addItem('notlink', time());
+        } catch (\InvalidArgumentException $e) {
+            $exceptionCaught = true;
+        }
+
+        unlink($fileName);
+
+        $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
+    }
+
+    public function testMultiLanguageLocationValidation()
+    {
+        $fileName = __DIR__ . '/sitemap.xml';
+        $sitemap = new Sitemap($fileName);
+
+
+        $sitemap->addItem([
+            'ru' => 'http://example.com/mylink1',
+            'en' => 'http://example.com/mylink2',
+        ]);
+
+        $exceptionCaught = false;
+        try {
+            $sitemap->addItem([
+                'ru' => 'http://example.com/mylink3',
+                'en' => 'notlink',
+            ], time());
         } catch (\InvalidArgumentException $e) {
             $exceptionCaught = true;
         }

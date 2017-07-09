@@ -9,6 +9,7 @@ Features
 --------
 
 - Create sitemap files.
+- Create multi-language sitemap files.
 - Create sitemap index files.
 - Automatically creates new file if 50000 URLs limit is reached.
 - Memory efficient buffer of configurable size.
@@ -76,6 +77,42 @@ foreach ($staticSitemapUrls as $sitemapUrl) {
 
 // write it
 $index->write();
+```
+
+Multi-language sitemap
+----------------------
+
+```php
+use samdark\sitemap\Sitemap;
+
+// create sitemap
+// be sure to pass `true` as second parameter to specify xhtml namespace
+$sitemap = new Sitemap(__DIR__ . '/sitemap_multi_language.xml', true);
+
+// Set url limit to fit in default limit of 50000 (default limit / number of languages) 
+$sitemap->setMaxUrls(25000);
+
+// add some URLs
+$sitemap->addItem('http://example.com/mylink1');
+
+$sitemap->addItem([
+    'ru' => 'http://example.com/ru/mylink2',
+    'en' => 'http://example.com/en/mylink2',
+], time());
+
+$sitemap->addItem([
+    'ru' => 'http://example.com/ru/mylink3',
+    'en' => 'http://example.com/en/mylink3',
+], time(), Sitemap::HOURLY);
+
+$sitemap->addItem([
+    'ru' => 'http://example.com/ru/mylink4',
+    'en' => 'http://example.com/en/mylink4',
+], time(), Sitemap::DAILY, 0.3);
+
+// write it
+$sitemap->write();
+
 ```
 
 Options
