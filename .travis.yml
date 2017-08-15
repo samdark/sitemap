@@ -9,7 +9,7 @@ php:
   - nightly
 matrix:
   include:
-  - php: hvvm-stable
+  - php: hhvm
     dist: trusty
 before_script:
   - composer install
