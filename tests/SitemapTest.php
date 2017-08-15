@@ -18,7 +18,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
 
     protected function assertIsOneMemberGzipFile($fileName)
     {
-        $gzipMemberStartSequence = hex2bin('1f8b08');
+        $gzipMemberStartSequence = pack('H*', '1f8b08');
         $content = file_get_contents($fileName);
         $isOneMemberGzipFile = (strpos($content, $gzipMemberStartSequence, 1) === false);
         $this->assertTrue($isOneMemberGzipFile, "There are more than one gzip member in $fileName");
