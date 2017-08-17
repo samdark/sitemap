@@ -77,6 +77,16 @@ class Sitemap
     private $writer;
 
     /**
+     * @var resource for writable incremental deflate context
+     */
+    private $deflateContext;
+
+    /**
+     * @var resource for php://temp stream
+     */
+    private $tempFile;
+
+    /**
      * @param string $filePath path of the file to write to
      * @throws \InvalidArgumentException
      */
@@ -136,7 +146,7 @@ class Sitemap
         if ($this->writer !== null) {
             $this->writer->endElement();
             $this->writer->endDocument();
-            $this->flush();
+            $this->flush(true);
         }
     }
 
@@ -150,14 +160,66 @@ class Sitemap
 
     /**
      * Flushes buffer into file
+     * @param bool $finishFile Pass true to close the file to write to, used only when useGzip is true
      */
-    private function flush()
+    private function flush($finishFile = false)
     {
-        $filePath = $this->getCurrentFilePath();
         if ($this->useGzip) {
-            $filePath = 'compress.zlib://' . $filePath;
+            $this->flushGzip($finishFile);
+            return;
         }
-        file_put_contents($filePath, $this->writer->flush(true), FILE_APPEND);
+        file_put_contents($this->getCurrentFilePath(), $this->writer->flush(true), FILE_APPEND);
+    }
+
+    /**
+     * Decides how to flush buffer into compressed file
+     * @param bool $finishFile Pass true to close the file to write to
+     */
+    private function flushGzip($finishFile = false) {
+        if (function_exists('deflate_init') && function_exists('deflate_add')) {
+            $this->flushWithIncrementalDeflate($finishFile);
+            return;
+        }
+        $this->flushWithTempFileFallback($finishFile);
+    }
+
+    /**
+     * Flushes buffer into file with incremental deflating data, available in php 7.0+
+     * @param bool $finishFile Pass true to write last chunk with closing headers
+     */
+    private function flushWithIncrementalDeflate($finishFile = false) {
+        $flushMode = $finishFile ? ZLIB_FINISH : ZLIB_NO_FLUSH;
+
+        if (empty($this->deflateContext)) {
+            $this->deflateContext = deflate_init(ZLIB_ENCODING_GZIP);
+        }
+        
+        $compressedChunk = deflate_add($this->deflateContext, $this->writer->flush(true), $flushMode);
+        file_put_contents($this->getCurrentFilePath(), $compressedChunk, FILE_APPEND);
+
+        if ($finishFile) {
+            $this->deflateContext = null;
+        }
+    }
+
+    /**
+     * Flushes buffer into temporary stream and compresses stream into a file on finish
+     * @param bool $finishFile Pass true to compress temporary stream into desired file
+     */
+    private function flushWithTempFileFallback($finishFile = false) {
+        if (empty($this->tempFile) || !is_resource($this->tempFile)) {
+            $this->tempFile = fopen('php://temp/', 'w');
+        }
+
+        fwrite($this->tempFile, $this->writer->flush(true));
+
+        if ($finishFile) {
+            $file = fopen('compress.zlib://' . $this->getCurrentFilePath(), 'w');
+            rewind($this->tempFile);
+            stream_copy_to_stream($this->tempFile, $file);
+            fclose($file);
+            fclose($this->tempFile);
+        }
     }
 
     /**

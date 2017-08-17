@@ -16,6 +16,14 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($xml->schemaValidate(__DIR__ . '/sitemap.xsd'));
     }
 
+    protected function assertIsOneMemberGzipFile($fileName)
+    {
+        $gzipMemberStartSequence = pack('H*', '1f8b08');
+        $content = file_get_contents($fileName);
+        $isOneMemberGzipFile = (strpos($content, $gzipMemberStartSequence, 1) === false);
+        $this->assertTrue($isOneMemberGzipFile, "There are more than one gzip member in $fileName");
+    }
+
     public function testWritingFile()
     {
         $fileName = __DIR__ . '/sitemap_regular.xml';
@@ -129,6 +137,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
         $this->assertEquals('application/x-gzip', $finfo->file($fileName));
         $this->assertIsValidSitemap('compress.zlib://' . $fileName);
+        $this->assertIsOneMemberGzipFile($fileName);
 
         unlink($fileName);
     }
@@ -161,6 +170,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
             $this->assertEquals('application/x-gzip', $finfo->file($expectedFile));
             $this->assertIsValidSitemap('compress.zlib://' . $expectedFile);
+            $this->assertIsOneMemberGzipFile($expectedFile);
             unlink($expectedFile);
         }
 
