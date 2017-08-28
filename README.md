@@ -60,7 +60,7 @@ $staticSitemap->addItem('http://example.com/tos');
 $staticSitemap->addItem('http://example.com/jobs');
 // add alternates
 $staticSitemap->addAlternates('http://example.com/%s/other', ['en','fr','de']); // ↴
-$staticSitemap->addItem('http://example.com/other');                      // ↲
+$staticSitemap->addItem('http://example.com/other');                            // ↲
 
 // write it
 $staticSitemap->write();
