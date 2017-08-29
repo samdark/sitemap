@@ -86,6 +86,16 @@ class Sitemap
      */
     private $tempFile;
 
+	/**
+	 * @var string pattern to use with sprintf
+	 */
+	private $pattern;
+
+	/**
+	 * @var array content diferent lang ['en', 'de', ...]
+	 */
+	private $langs;
+
     /**
      * @param string $filePath path of the file to write to
      * @throws \InvalidArgumentException
@@ -110,7 +120,7 @@ class Sitemap
     {
         return $this->writtenFilePaths;
     }
-    
+
     /**
      * Creates new file
      * @throws \RuntimeException if file is not writeable
@@ -136,6 +146,8 @@ class Sitemap
         $this->writer->setIndent($this->useIndent);
         $this->writer->startElement('urlset');
         $this->writer->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+        // validator of the hreflang links alternate
+        $this->writer->writeAttributeNs( 'xmlns', 'xhtml', null, 'http://www.w3.org/1999/xhtml' );
     }
 
     /**
@@ -193,7 +205,7 @@ class Sitemap
         if (empty($this->deflateContext)) {
             $this->deflateContext = deflate_init(ZLIB_ENCODING_GZIP);
         }
-        
+
         $compressedChunk = deflate_add($this->deflateContext, $this->writer->flush(true), $flushMode);
         file_put_contents($this->getCurrentFilePath(), $compressedChunk, FILE_APPEND);
 
@@ -236,7 +248,7 @@ class Sitemap
             );
         }
     }
-    
+
     /**
      * Adds a new item to sitemap
      *
@@ -262,7 +274,7 @@ class Sitemap
         $this->writer->startElement('url');
 
         $this->validateLocation($location);
-        
+
         $this->writer->writeElement('loc', $location);
 
         if ($lastModified !== null) {
@@ -290,10 +302,83 @@ class Sitemap
             $this->writer->writeElement('priority', number_format($priority, 1, '.', ','));
         }
 
+		// passing the parameters and languages generates the tags
+		if( is_string( $this->getPattern() ) && is_array( $this->getLangs() ) ) {
+			foreach( $this->langs as $lang ) {
+				$this->writer->startElementNs( 'xhtml', 'link', null );
+				$this->writer->writeAttribute( 'rel', 'alternate' );
+				$this->writer->writeAttribute( 'hreflang', $lang );
+				$this->writer->writeAttribute( 'href', sprintf( $this->getPattern(), $lang ) );
+				$this->writer->endElement();
+			}
+			$this->resetAlternates();
+		}
+
         $this->writer->endElement();
 
         $this->urlsCount++;
     }
+
+	/**
+	 * Add the pattern and an array with the languages
+	 *
+	 * @param null       $pattern
+	 * @param array|null $langs
+	 */
+	public function addAlternates($pattern = null, array $langs = null)
+	{
+		$this->setPattern( $pattern );
+		$this->setLangs( $langs );
+	}
+
+	/**
+	 * Reset variables
+	 */
+	private function resetAlternates()
+	{
+		$this->pattern = null;
+		$this->langs   = null;
+	}
+
+	/**
+	 * Get pattern
+	 *
+	 * @return string
+	 */
+	private function getPattern()
+	{
+		return $this->pattern;
+	}
+
+	/**
+	 * Set pattern
+	 *
+	 * @param null $pattern
+	 */
+	private function setPattern($pattern = null)
+	{
+		$this->pattern = $pattern;
+	}
+
+	/**
+	 * Get langs
+	 *
+	 * @return array
+	 */
+	private function getLangs()
+	{
+		return $this->langs;
+	}
+
+	/**
+	 * Set langs
+	 *
+	 * @param null $langs
+	 */
+	private function setLangs($langs = null)
+	{
+		$this->langs = $langs;
+	}
 
     /**
      * @return string path of currently opened file
@@ -350,7 +435,6 @@ class Sitemap
     {
         $this->bufferSize = (int)$number;
     }
-
 
     /**
      * Sets if XML should be indented.
