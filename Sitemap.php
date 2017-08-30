@@ -87,14 +87,14 @@ class Sitemap
     private $tempFile;
 
     /**
-	 * @var string pattern to use with sprintf
-	 */
-	private $pattern;
+     * @var string pattern to use with sprintf
+     */
+    private $pattern;
 
-	/**
-	 * @var array content diferent lang ['fr', 'de', ...]
-	 */
-	private $langs;
+    /**
+     * @var array content diferent lang ['fr', 'de', ...]
+     */
+    private $langs;
 
     /**
      * @param string $filePath path of the file to write to
@@ -302,16 +302,16 @@ class Sitemap
             $this->writer->writeElement('priority', number_format($priority, 1, '.', ','));
         }
 
-		// passing the parameters and languages generates the tags
-		if(is_string($this->getPattern()) && !empty($this->getLangs())) {
-			foreach($this->langs as $lang) {
-				$this->writer->startElementNs('xhtml', 'link', null);
-				$this->writer->writeAttribute('rel', 'alternate');
-				$this->writer->writeAttribute('hreflang', $lang);
-				$this->writer->writeAttribute('href', sprintf($this->getPattern(), $lang));
-				$this->writer->endElement();
-			}
-			$this->resetAlternates();
+        // passing the parameters and languages generates the tags
+        if(is_string($this->getPattern()) && is_array($this->getLangs())) {
+            foreach($this->langs as $lang) {
+                $this->writer->startElementNs('xhtml', 'link', null);
+                $this->writer->writeAttribute('rel', 'alternate');
+                $this->writer->writeAttribute('hreflang', $lang);
+                $this->writer->writeAttribute('href', sprintf($this->getPattern(), $lang));
+                $this->writer->endElement();
+            }
+            $this->resetAlternates();
         }
 
         $this->writer->endElement();
@@ -410,8 +410,11 @@ class Sitemap
      * @param null       $pattern
      * @param array|null $langs
      */
-    public function addAlternates($pattern = null, array $langs = null)
+    public function addAlternates($pattern = null, $langs = array())
     {
+        if(!is_array($langs)) {
+            throw new \InvalidArgumentException('Please specify the languages in array. (Example: array("de", "fr", "it")).');
+        }
         $this->setPattern($pattern);
         $this->setLangs($langs);
     }
