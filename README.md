@@ -9,6 +9,7 @@ Features
 --------
 
 - Create sitemap files.
+- Create sitemap files with *hreflang* alternates.
 - Create sitemap index files.
 - Automatically creates new file if 50000 URLs limit is reached.
 - Memory efficient buffer of configurable size.
@@ -40,6 +41,9 @@ $sitemap->addItem('http://example.com/mylink1');
 $sitemap->addItem('http://example.com/mylink2', time());
 $sitemap->addItem('http://example.com/mylink3', time(), Sitemap::HOURLY);
 $sitemap->addItem('http://example.com/mylink4', time(), Sitemap::DAILY, 0.3);
+// add some URLs of alternates links
+$sitemap->addAlternates('http://example.com/%s/mylink5', array('it','fr','de'));
+$sitemap->addItem('http://example.com/mylink5', time(), Sitemap::DAILY, 0.5);
 
 // write it
 $sitemap->write();
@@ -54,6 +58,9 @@ $staticSitemap = new Sitemap(__DIR__ . '/sitemap_static.xml');
 $staticSitemap->addItem('http://example.com/about');
 $staticSitemap->addItem('http://example.com/tos');
 $staticSitemap->addItem('http://example.com/jobs');
+// add some URLs of alternates links
+$staticSitemap->addAlternates('http://example.com/%s/other', array('it','fr','de'));
+$staticSitemap->addItem('http://example.com/other');
 
 // write it
 $staticSitemap->write();
