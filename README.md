@@ -86,10 +86,10 @@ Multi-language sitemap
 use samdark\sitemap\Sitemap;
 
 // create sitemap
-// be sure to pass `true` as second parameter to specify xhtml namespace
+// be sure to pass `true` as second parameter to specify XHTML namespace
 $sitemap = new Sitemap(__DIR__ . '/sitemap_multi_language.xml', true);
 
-// Set url limit to fit in default limit of 50000 (default limit / number of languages) 
+// Set URL limit to fit in default limit of 50000 (default limit / number of languages) 
 $sitemap->setMaxUrls(25000);
 
 // add some URLs

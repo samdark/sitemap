@@ -54,7 +54,7 @@ class Sitemap
     private $useIndent = true;
 
     /**
-     * @var bool if should xhtml namespace be specified
+     * @var bool if should XHTML namespace be specified
      * Useful for multi-language sitemap to point crawler to alternate language page via xhtml:link tag.
      * @see https://support.google.com/webmasters/answer/2620865?hl=en
      */
@@ -95,7 +95,7 @@ class Sitemap
 
     /**
      * @param string $filePath path of the file to write to
-     * @param bool $useXhtml is xhtml namespace should be specified
+     * @param bool $useXhtml is XHTML namespace should be specified
      *
      * @throws \InvalidArgumentException
      */
