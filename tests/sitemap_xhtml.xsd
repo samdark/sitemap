@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns="http://symfony.com/schema"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://symfony.com/schema"
+            elementFormDefault="qualified">
+    <!--
+        The Sitemap schema does not include the link element that is
+        utilized by Google for multi-language Sitemaps. Hence, we need
+        to combine the two schemas for automated validation in a dedicated
+        XSD.
+    -->
+    <xsd:import namespace="http://www.sitemaps.org/schemas/sitemap/0.9"
+                schemaLocation="sitemap.xsd"/>
+    <xsd:import namespace="http://www.w3.org/1999/xhtml"
+                schemaLocation="xhtml1-strict.xsd"/>
+</xsd:schema>
