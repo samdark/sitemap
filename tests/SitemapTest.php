@@ -84,20 +84,20 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         $sitemap = new Sitemap($fileName, true);
         $sitemap->addItem('http://example.com/mylink1');
 
-        $sitemap->addItem([
+        $sitemap->addItem(array(
             'ru' => 'http://example.com/ru/mylink2',
             'en' => 'http://example.com/en/mylink2',
-        ], time());
+        ), time());
 
-        $sitemap->addItem([
+        $sitemap->addItem(array(
             'ru' => 'http://example.com/ru/mylink3',
             'en' => 'http://example.com/en/mylink3',
-        ], time(), Sitemap::HOURLY);
+        ), time(), Sitemap::HOURLY);
 
-        $sitemap->addItem([
+        $sitemap->addItem(array(
             'ru' => 'http://example.com/ru/mylink4',
             'en' => 'http://example.com/en/mylink4',
-        ], time(), Sitemap::DAILY, 0.3);
+        ), time(), Sitemap::DAILY, 0.3);
 
         $sitemap->write();
 
@@ -162,17 +162,17 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         $sitemap = new Sitemap($fileName);
 
 
-        $sitemap->addItem([
+        $sitemap->addItem(array(
             'ru' => 'http://example.com/mylink1',
             'en' => 'http://example.com/mylink2',
-        ]);
+        ));
 
         $exceptionCaught = false;
         try {
-            $sitemap->addItem([
+            $sitemap->addItem(array(
                 'ru' => 'http://example.com/mylink3',
                 'en' => 'notlink',
-            ], time());
+            ), time());
         } catch (\InvalidArgumentException $e) {
             $exceptionCaught = true;
         }
