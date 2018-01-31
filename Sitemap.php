@@ -29,6 +29,16 @@ class Sitemap
     private $urlsCount = 0;
 
     /**
+     * @var integer Maximum allowed number of bytes in a single file.
+     */
+    private $maxBytes = 10485760;
+
+    /**
+     * @var integer number of bytes already written to the current file, before compression
+     */
+    private $byteCount = 0;
+
+    /**
      * @var string path to the file to be written
      */
     private $filePath;
@@ -154,6 +164,14 @@ class Sitemap
         if ($this->useXhtml) {
             $this->writer->writeAttribute('xmlns:xhtml', 'http://www.w3.org/1999/xhtml');
         }
+
+        /*
+         * XMLWriter does not give us much options, so we must make sure, that
+         * the header was written correctly and we can simply reuse any <url>
+         * elements that did not fit into the previous file. (See self::flush)
+         */
+        $this->writer->text(PHP_EOL);
+        $this->flush(true);
     }
 
     /**
@@ -165,9 +183,14 @@ class Sitemap
             $this->writer->endElement();
             $this->writer->endDocument();
 
-            $this->flush();
+            /* To prevent infinite recursion through flush */
+            $this->urlsCount = 0;
+
+            $this->flush(0);
             $this->writerBackend->finish();
             $this->writerBackend = null;
+
+            $this->byteCount = 0;
         }
     }
 
@@ -181,11 +204,31 @@ class Sitemap
 
     /**
      * Flushes buffer into file
+     *
+     * @param int $footSize Size of the remaining closing tags
+     * @throws \OverflowException
      */
-    private function flush()
+    private function flush($footSize = 10)
     {
         $data = $this->writer->flush(true);
+        $dataSize = mb_strlen($data, '8bit');
+
+        /*
+         * Limit the file size of each single site map
+         *
+         * We use a heuristic of 10 Bytes for the remainder of the file,
+         * i.e. </urlset> plus a new line.
+         */
+        if ($this->byteCount + $dataSize + $footSize > $this->maxBytes) {
+            if ($this->urlsCount <= 1) {
+                throw new \OverflowException('The buffer size is too big for the defined file size limit');
+            }
+            $this->finishFile();
+            $this->createNewFile();
+        }
+
         $this->writerBackend->append($data);
+        $this->byteCount += $dataSize;
     }
 
     /**
@@ -215,10 +258,11 @@ class Sitemap
      */
     public function addItem($location, $lastModified = null, $changeFrequency = null, $priority = null)
     {
-        if ($this->urlsCount === 0) {
-            $this->createNewFile();
-        } elseif ($this->urlsCount % $this->maxUrls === 0) {
+        if ($this->urlsCount >= $this->maxUrls) {
             $this->finishFile();
+        }
+
+        if ($this->writerBackend === null) {
             $this->createNewFile();
         }
 
@@ -396,6 +440,16 @@ class Sitemap
     public function setMaxUrls($number)
     {
         $this->maxUrls = (int)$number;
+    }
+
+    /**
+     * Sets maximum number of bytes to write in a single file.
+     * Default is 10485760 or 10 MiB.
+     * @param integer $number
+     */
+    public function setMaxBytes($number)
+    {
+        $this->maxBytes = (int)$number;
     }
 
     /**

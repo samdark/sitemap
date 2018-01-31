@@ -239,4 +239,55 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         $this->assertContains('http://example.com/sitemap_multi_gzipped.xml.gz', $urls);
         $this->assertContains('http://example.com/sitemap_multi_gzipped_10.xml.gz', $urls);
     }
+
+    public function testFileSizeLimit()
+    {
+        $sitemap = new Sitemap(__DIR__ . '/sitemap_multi.xml');
+        $sizeLimit = 1036;
+        $sitemap->setMaxBytes($sizeLimit);
+
+        for ($i = 0; $i < 20; $i++) {
+            $sitemap->addItem('http://example.com/mylink' . $i, time());
+        }
+        $sitemap->write();
+
+        $expectedFiles = array(
+            __DIR__ . '/' .'sitemap_multi.xml',
+            __DIR__ . '/' .'sitemap_multi_2.xml',
+            __DIR__ . '/' .'sitemap_multi_3.xml',
+        );
+
+        $this->assertEquals($sizeLimit, filesize($expectedFiles[1]));
+
+        foreach ($expectedFiles as $expectedFile) {
+            $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
+            $this->assertIsValidSitemap($expectedFile);
+            $this->assertLessThanOrEqual($sizeLimit, filesize($expectedFile), "$expectedFile exceeds the size limit");
+            unlink($expectedFile);
+        }
+
+        $urls = $sitemap->getSitemapUrls('http://example.com/');
+        $this->assertEquals(3, count($urls), print_r($urls, true));
+        $this->assertContains('http://example.com/sitemap_multi.xml', $urls);
+        $this->assertContains('http://example.com/sitemap_multi_3.xml', $urls);
+    }
+
+    public function testSmallSizeLimit()
+    {
+        $fileName = __DIR__ . '/sitemap_regular.xml';
+        $sitemap = new Sitemap($fileName);
+        $sitemap->setMaxBytes(0);
+
+        $exceptionCaught = false;
+        try {
+            $sitemap->addItem('http://example.com/mylink1');
+            $sitemap->write();
+        } catch (\OverflowException $e) {
+            $exceptionCaught = true;
+        }
+
+        unlink($fileName);
+
+        $this->assertTrue($exceptionCaught, 'Expected OverflowException wasn\'t thrown.');
+    }
 }
