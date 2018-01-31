@@ -79,19 +79,14 @@ class Sitemap
     private $useGzip = false;
 
     /**
+     * @var WriterInterface that does the actual writing
+     */
+    private $writerBackend;
+
+    /**
      * @var XMLWriter
      */
     private $writer;
-
-    /**
-     * @var resource for writable incremental deflate context
-     */
-    private $deflateContext;
-
-    /**
-     * @var resource for php://temp stream
-     */
-    private $tempFile;
 
     /**
      * @param string $filePath path of the file to write to
@@ -140,6 +135,16 @@ class Sitemap
             }
         }
 
+        if ($this->useGzip) {
+            if (function_exists('deflate_init') && function_exists('deflate_add')) {
+                $this->writerBackend = new DeflateWriter($filePath);
+            } else {
+                $this->writerBackend = new TempFileGZIPWriter($filePath);
+            }
+        } else {
+            $this->writerBackend = new PlainFileWriter($filePath);
+        }
+
         $this->writer = new XMLWriter();
         $this->writer->openMemory();
         $this->writer->startDocument('1.0', 'UTF-8');
@@ -159,7 +164,10 @@ class Sitemap
         if ($this->writer !== null) {
             $this->writer->endElement();
             $this->writer->endDocument();
-            $this->flush(true);
+
+            $this->flush();
+            $this->writerBackend->finish();
+            $this->writerBackend = null;
         }
     }
 
@@ -173,66 +181,11 @@ class Sitemap
 
     /**
      * Flushes buffer into file
-     * @param bool $finishFile Pass true to close the file to write to, used only when useGzip is true
      */
-    private function flush($finishFile = false)
+    private function flush()
     {
-        if ($this->useGzip) {
-            $this->flushGzip($finishFile);
-            return;
-        }
-        file_put_contents($this->getCurrentFilePath(), $this->writer->flush(true), FILE_APPEND);
-    }
-
-    /**
-     * Decides how to flush buffer into compressed file
-     * @param bool $finishFile Pass true to close the file to write to
-     */
-    private function flushGzip($finishFile = false) {
-        if (function_exists('deflate_init') && function_exists('deflate_add')) {
-            $this->flushWithIncrementalDeflate($finishFile);
-            return;
-        }
-        $this->flushWithTempFileFallback($finishFile);
-    }
-
-    /**
-     * Flushes buffer into file with incremental deflating data, available in php 7.0+
-     * @param bool $finishFile Pass true to write last chunk with closing headers
-     */
-    private function flushWithIncrementalDeflate($finishFile = false) {
-        $flushMode = $finishFile ? ZLIB_FINISH : ZLIB_NO_FLUSH;
-
-        if (empty($this->deflateContext)) {
-            $this->deflateContext = deflate_init(ZLIB_ENCODING_GZIP);
-        }
-        
-        $compressedChunk = deflate_add($this->deflateContext, $this->writer->flush(true), $flushMode);
-        file_put_contents($this->getCurrentFilePath(), $compressedChunk, FILE_APPEND);
-
-        if ($finishFile) {
-            $this->deflateContext = null;
-        }
-    }
-
-    /**
-     * Flushes buffer into temporary stream and compresses stream into a file on finish
-     * @param bool $finishFile Pass true to compress temporary stream into desired file
-     */
-    private function flushWithTempFileFallback($finishFile = false) {
-        if (empty($this->tempFile) || !is_resource($this->tempFile)) {
-            $this->tempFile = fopen('php://temp/', 'w');
-        }
-
-        fwrite($this->tempFile, $this->writer->flush(true));
-
-        if ($finishFile) {
-            $file = fopen('compress.zlib://' . $this->getCurrentFilePath(), 'w');
-            rewind($this->tempFile);
-            stream_copy_to_stream($this->tempFile, $file);
-            fclose($file);
-            fclose($this->tempFile);
-        }
+        $data = $this->writer->flush(true);
+        $this->writerBackend->append($data);
     }
 
     /**
@@ -479,7 +432,7 @@ class Sitemap
         if ($value && !extension_loaded('zlib')) {
             throw new \RuntimeException('Zlib extension must be enabled to gzip the sitemap.');
         }
-        if ($this->urlsCount && $value != $this->useGzip) {
+        if ($this->writerBackend !== null && $value != $this->useGzip) {
             throw new \RuntimeException('Cannot change the gzip value once items have been added to the sitemap.');
         }
         $this->useGzip = $value;
