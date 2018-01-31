@@ -56,7 +56,7 @@ class Sitemap
     /**
      * @var integer number of URLs to be kept in memory before writing it to file
      */
-    private $bufferSize = 1000;
+    private $bufferSize = 10;
 
     /**
      * @var bool if XML should be indented
@@ -266,10 +266,6 @@ class Sitemap
             $this->createNewFile();
         }
 
-        if ($this->urlsCount % $this->bufferSize === 0) {
-            $this->flush();
-        }
-
         if (is_array($location)) {
             $this->addMultiLanguageItem($location, $lastModified, $changeFrequency, $priority);
         } else {
@@ -277,6 +273,10 @@ class Sitemap
         }
 
         $this->urlsCount++;
+
+        if ($this->urlsCount % $this->bufferSize === 0) {
+            $this->flush();
+        }
     }
 
 
@@ -454,7 +454,7 @@ class Sitemap
 
     /**
      * Sets number of URLs to be kept in memory before writing it to file.
-     * Default is 1000.
+     * Default is 10.
      *
      * @param integer $number
      */

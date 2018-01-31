@@ -1,6 +1,8 @@
 <?php
 namespace samdark\sitemap\tests;
 
+use SebastianBergmann\Timer\Timer;
+
 use samdark\sitemap\Sitemap;
 
 class SitemapTest extends \PHPUnit_Framework_TestCase
@@ -245,6 +247,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         $sitemap = new Sitemap(__DIR__ . '/sitemap_multi.xml');
         $sizeLimit = 1036;
         $sitemap->setMaxBytes($sizeLimit);
+        $sitemap->setBufferSize(1);
 
         for ($i = 0; $i < 20; $i++) {
             $sitemap->addItem('http://example.com/mylink' . $i, time());
@@ -277,6 +280,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         $fileName = __DIR__ . '/sitemap_regular.xml';
         $sitemap = new Sitemap($fileName);
         $sitemap->setMaxBytes(0);
+        $sitemap->setBufferSize(1);
 
         $exceptionCaught = false;
         try {
@@ -289,5 +293,33 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         unlink($fileName);
 
         $this->assertTrue($exceptionCaught, 'Expected OverflowException wasn\'t thrown.');
+    }
+
+    public function testBufferSizeImpact()
+    {
+        if (getenv('TRAVIS') == 'true') {
+            $this->markTestSkipped('Can not reliably test performance on travis-ci.');
+            return;
+        }
+
+        $fileName = __DIR__ . '/sitemap_big.xml';
+
+        $times = array();
+
+        foreach (array(1000, 10) as $bufferSize) {
+            $startTime = microtime(true);
+
+            $sitemap = new Sitemap($fileName);
+            $sitemap->setBufferSize($bufferSize);
+            for ($i = 0; $i < 50000; $i++) {
+                $sitemap->addItem('http://example.com/mylink' . $i, time());
+            }
+            $sitemap->write();
+
+            $times[] = microtime(true) - $startTime;
+            unlink($fileName);
+        }
+
+        $this->assertLessThan($times[0] * 1.2, $times[1]);
     }
 }
