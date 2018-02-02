@@ -8,11 +8,11 @@ Sitemap and sitemap index builder.
 Features
 --------
 
-- Create sitemap files.
+- Create sitemap files: either regular or gzipped.
 - Create multi-language sitemap files.
 - Create sitemap index files.
-- Automatically creates new file if 50000 URLs limit is reached.
-- Memory efficient buffer of configurable size.
+- Automatically creates new file if either URL limit or file size limit is reached.
+- Fast and memory efficient.
 
 Installation
 ------------
@@ -123,9 +123,11 @@ There are methods to configure `Sitemap` instance:
 - `setMaxUrls($number)`. Sets maximum number of URLs to write in a single file.
   Default is 50000 which is the limit according to specification and most of
   existing implementations.
+- `setMaxBytes($number)`. Sets maximum size of a single site map file.
+  Default is 10MiB which should be compatible with most current search engines.
 - `setBufferSize($number)`. Sets number of URLs to be kept in memory before writing it to file.
-  Default is 1000. If you have more memory consider increasing it. If 1000 URLs doesn't fit,
-  decrease it.
+  Default is 10. Bigger values give marginal benefits.
+  On the other hand when the file size limit is hit, the complete buffer must be written to the next file.
 - `setUseIndent($bool)`. Sets if XML should be indented. Default is true.
 - `setUseGzip($bool)`. Sets whether the resulting sitemap files will be gzipped or not.
   Default is `false`. `zlib` extension must be enabled to use this feature.

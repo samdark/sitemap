@@ -29,6 +29,16 @@ class Sitemap
     private $urlsCount = 0;
 
     /**
+     * @var integer Maximum allowed number of bytes in a single file.
+     */
+    private $maxBytes = 10485760;
+
+    /**
+     * @var integer number of bytes already written to the current file, before compression
+     */
+    private $byteCount = 0;
+
+    /**
      * @var string path to the file to be written
      */
     private $filePath;
@@ -46,7 +56,7 @@ class Sitemap
     /**
      * @var integer number of URLs to be kept in memory before writing it to file
      */
-    private $bufferSize = 1000;
+    private $bufferSize = 10;
 
     /**
      * @var bool if XML should be indented
@@ -79,19 +89,14 @@ class Sitemap
     private $useGzip = false;
 
     /**
+     * @var WriterInterface that does the actual writing
+     */
+    private $writerBackend;
+
+    /**
      * @var XMLWriter
      */
     private $writer;
-
-    /**
-     * @var resource for writable incremental deflate context
-     */
-    private $deflateContext;
-
-    /**
-     * @var resource for php://temp stream
-     */
-    private $tempFile;
 
     /**
      * @param string $filePath path of the file to write to
@@ -140,6 +145,16 @@ class Sitemap
             }
         }
 
+        if ($this->useGzip) {
+            if (function_exists('deflate_init') && function_exists('deflate_add')) {
+                $this->writerBackend = new DeflateWriter($filePath);
+            } else {
+                $this->writerBackend = new TempFileGZIPWriter($filePath);
+            }
+        } else {
+            $this->writerBackend = new PlainFileWriter($filePath);
+        }
+
         $this->writer = new XMLWriter();
         $this->writer->openMemory();
         $this->writer->startDocument('1.0', 'UTF-8');
@@ -149,6 +164,14 @@ class Sitemap
         if ($this->useXhtml) {
             $this->writer->writeAttribute('xmlns:xhtml', 'http://www.w3.org/1999/xhtml');
         }
+
+        /*
+         * XMLWriter does not give us much options, so we must make sure, that
+         * the header was written correctly and we can simply reuse any <url>
+         * elements that did not fit into the previous file. (See self::flush)
+         */
+        $this->writer->text(PHP_EOL);
+        $this->flush(true);
     }
 
     /**
@@ -159,7 +182,15 @@ class Sitemap
         if ($this->writer !== null) {
             $this->writer->endElement();
             $this->writer->endDocument();
-            $this->flush(true);
+
+            /* To prevent infinite recursion through flush */
+            $this->urlsCount = 0;
+
+            $this->flush(0);
+            $this->writerBackend->finish();
+            $this->writerBackend = null;
+
+            $this->byteCount = 0;
         }
     }
 
@@ -173,66 +204,31 @@ class Sitemap
 
     /**
      * Flushes buffer into file
-     * @param bool $finishFile Pass true to close the file to write to, used only when useGzip is true
+     *
+     * @param int $footSize Size of the remaining closing tags
+     * @throws \OverflowException
      */
-    private function flush($finishFile = false)
+    private function flush($footSize = 10)
     {
-        if ($this->useGzip) {
-            $this->flushGzip($finishFile);
-            return;
-        }
-        file_put_contents($this->getCurrentFilePath(), $this->writer->flush(true), FILE_APPEND);
-    }
+        $data = $this->writer->flush(true);
+        $dataSize = mb_strlen($data, '8bit');
 
-    /**
-     * Decides how to flush buffer into compressed file
-     * @param bool $finishFile Pass true to close the file to write to
-     */
-    private function flushGzip($finishFile = false) {
-        if (function_exists('deflate_init') && function_exists('deflate_add')) {
-            $this->flushWithIncrementalDeflate($finishFile);
-            return;
-        }
-        $this->flushWithTempFileFallback($finishFile);
-    }
-
-    /**
-     * Flushes buffer into file with incremental deflating data, available in php 7.0+
-     * @param bool $finishFile Pass true to write last chunk with closing headers
-     */
-    private function flushWithIncrementalDeflate($finishFile = false) {
-        $flushMode = $finishFile ? ZLIB_FINISH : ZLIB_NO_FLUSH;
-
-        if (empty($this->deflateContext)) {
-            $this->deflateContext = deflate_init(ZLIB_ENCODING_GZIP);
-        }
-        
-        $compressedChunk = deflate_add($this->deflateContext, $this->writer->flush(true), $flushMode);
-        file_put_contents($this->getCurrentFilePath(), $compressedChunk, FILE_APPEND);
-
-        if ($finishFile) {
-            $this->deflateContext = null;
-        }
-    }
-
-    /**
-     * Flushes buffer into temporary stream and compresses stream into a file on finish
-     * @param bool $finishFile Pass true to compress temporary stream into desired file
-     */
-    private function flushWithTempFileFallback($finishFile = false) {
-        if (empty($this->tempFile) || !is_resource($this->tempFile)) {
-            $this->tempFile = fopen('php://temp/', 'w');
+        /*
+         * Limit the file size of each single site map
+         *
+         * We use a heuristic of 10 Bytes for the remainder of the file,
+         * i.e. </urlset> plus a new line.
+         */
+        if ($this->byteCount + $dataSize + $footSize > $this->maxBytes) {
+            if ($this->urlsCount <= 1) {
+                throw new \OverflowException('The buffer size is too big for the defined file size limit');
+            }
+            $this->finishFile();
+            $this->createNewFile();
         }
 
-        fwrite($this->tempFile, $this->writer->flush(true));
-
-        if ($finishFile) {
-            $file = fopen('compress.zlib://' . $this->getCurrentFilePath(), 'w');
-            rewind($this->tempFile);
-            stream_copy_to_stream($this->tempFile, $file);
-            fclose($file);
-            fclose($this->tempFile);
-        }
+        $this->writerBackend->append($data);
+        $this->byteCount += $dataSize;
     }
 
     /**
@@ -262,15 +258,12 @@ class Sitemap
      */
     public function addItem($location, $lastModified = null, $changeFrequency = null, $priority = null)
     {
-        if ($this->urlsCount === 0) {
-            $this->createNewFile();
-        } elseif ($this->urlsCount % $this->maxUrls === 0) {
+        if ($this->urlsCount >= $this->maxUrls) {
             $this->finishFile();
-            $this->createNewFile();
         }
 
-        if ($this->urlsCount % $this->bufferSize === 0) {
-            $this->flush();
+        if ($this->writerBackend === null) {
+            $this->createNewFile();
         }
 
         if (is_array($location)) {
@@ -280,6 +273,10 @@ class Sitemap
         }
 
         $this->urlsCount++;
+
+        if ($this->urlsCount % $this->bufferSize === 0) {
+            $this->flush();
+        }
     }
 
 
@@ -446,8 +443,18 @@ class Sitemap
     }
 
     /**
+     * Sets maximum number of bytes to write in a single file.
+     * Default is 10485760 or 10 MiB.
+     * @param integer $number
+     */
+    public function setMaxBytes($number)
+    {
+        $this->maxBytes = (int)$number;
+    }
+
+    /**
      * Sets number of URLs to be kept in memory before writing it to file.
-     * Default is 1000.
+     * Default is 10.
      *
      * @param integer $number
      */
@@ -479,7 +486,7 @@ class Sitemap
         if ($value && !extension_loaded('zlib')) {
             throw new \RuntimeException('Zlib extension must be enabled to gzip the sitemap.');
         }
-        if ($this->urlsCount && $value != $this->useGzip) {
+        if ($this->writerBackend !== null && $value != $this->useGzip) {
             throw new \RuntimeException('Cannot change the gzip value once items have been added to the sitemap.');
         }
         $this->useGzip = $value;
