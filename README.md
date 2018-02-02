@@ -8,11 +8,11 @@ Sitemap and sitemap index builder.
 Features
 --------
 
-- Create sitemap files.
+- Create sitemap files: either regular or gzipped.
 - Create multi-language sitemap files.
 - Create sitemap index files.
-- Automatically creates new file if 50000 URLs limit is reached.
-- Memory efficient buffer of configurable size.
+- Automatically creates new file if either URL limit or file size limit is reached.
+- Fast and memory efficient.
 
 Installation
 ------------
