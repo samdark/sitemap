@@ -21,12 +21,12 @@ class Sitemap
     /**
      * @var integer Maximum allowed number of URLs in a single file.
      */
-    private $maxUrls = 50000;
+    protected $maxUrls = 50000;
 
     /**
      * @var integer number of URLs added
      */
-    private $urlsCount = 0;
+    protected $urlsCount = 0;
 
     /**
      * @var integer Maximum allowed number of bytes in a single file.
@@ -46,29 +46,29 @@ class Sitemap
     /**
      * @var integer number of files written
      */
-    private $fileCount = 0;
+    protected $fileCount = 0;
 
     /**
      * @var array path of files written
      */
-    private $writtenFilePaths = array();
+    protected $writtenFilePaths = array();
 
     /**
      * @var integer number of URLs to be kept in memory before writing it to file
      */
-    private $bufferSize = 10;
+    protected $bufferSize = 10;
 
     /**
      * @var bool if XML should be indented
      */
-    private $useIndent = true;
+    protected $useIndent = true;
 
     /**
      * @var bool if should XHTML namespace be specified
      * Useful for multi-language sitemap to point crawler to alternate language page via xhtml:link tag.
      * @see https://support.google.com/webmasters/answer/2620865?hl=en
      */
-    private $useXhtml = false;
+    protected $useXhtml = false;
 
     /**
      * @var array valid values for frequency parameter
@@ -86,17 +86,17 @@ class Sitemap
     /**
      * @var bool whether to gzip the resulting files or not
      */
-    private $useGzip = false;
+    protected $useGzip = false;
 
     /**
      * @var WriterInterface that does the actual writing
      */
-    private $writerBackend;
+    protected $writerBackend;
 
     /**
      * @var XMLWriter
      */
-    private $writer;
+    protected $writer;
 
     /**
      * @param string $filePath path of the file to write to
@@ -177,7 +177,7 @@ class Sitemap
     /**
      * Writes closing tags to current file
      */
-    private function finishFile()
+    protected function finishFile()
     {
         if ($this->writer !== null) {
             $this->writer->endElement();
@@ -208,7 +208,7 @@ class Sitemap
      * @param int $footSize Size of the remaining closing tags
      * @throws \OverflowException
      */
-    private function flush($footSize = 10)
+    protected function flush($footSize = 10)
     {
         $data = $this->writer->flush(true);
         $dataSize = mb_strlen($data, '8bit');
@@ -400,7 +400,7 @@ class Sitemap
     /**
      * @return string path of currently opened file
      */
-    private function getCurrentFilePath()
+    protected function getCurrentFilePath()
     {
         if ($this->fileCount < 2) {
             return $this->filePath;
