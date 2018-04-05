@@ -4,9 +4,9 @@ namespace samdark\sitemap;
 use XMLWriter;
 
 /**
- * A class for generating Sitemaps (http://www.sitemaps.org/)
+ * A class for generating image Sitemaps (http://www.sitemaps.org/)
  *
- * @author Alexander Makarov <sam@rmcreative.ru>
+ * @author SunwelLight
  */
 class SitemapImages extends Sitemap
 {
