@@ -1,64 +1,13 @@
 <?php
 namespace samdark\sitemap;
 
-use XMLWriter;
-
 /**
  * A class for generating image Sitemaps (http://www.sitemaps.org/)
  *
- * @author SunwelLight
+ * @author SunwelLight <sunwellight@gmail.com>
  */
 class SitemapImages extends Sitemap
 {
-    /**
-     * Creates new file
-     * @throws \RuntimeException if file is not writeable
-     */
-    private function createNewFile()
-    {
-        $this->fileCount++;
-        $filePath = $this->getCurrentFilePath();
-        $this->writtenFilePaths[] = $filePath;
-
-        if (file_exists($filePath)) {
-            $filePath = realpath($filePath);
-            if (is_writable($filePath)) {
-                unlink($filePath);
-            } else {
-                throw new \RuntimeException("File \"$filePath\" is not writable.");
-            }
-        }
-
-        if ($this->useGzip) {
-            if (function_exists('deflate_init') && function_exists('deflate_add')) {
-                $this->writerBackend = new DeflateWriter($filePath);
-            } else {
-                $this->writerBackend = new TempFileGZIPWriter($filePath);
-            }
-        } else {
-            $this->writerBackend = new PlainFileWriter($filePath);
-        }
-
-        $this->writer = new XMLWriter();
-        $this->writer->openMemory();
-        $this->writer->startDocument('1.0', 'UTF-8');
-        $this->writer->setIndent($this->useIndent);
-        $this->writer->startElement('urlset');
-        $this->writer->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
-        $this->writer->writeAttribute('xmlns:image', 'http://www.google.com/schemas/sitemap-image/1.1');
-        if ($this->useXhtml) {
-            $this->writer->writeAttribute('xmlns:xhtml', 'http://www.w3.org/1999/xhtml');
-        }
-
-        /*
-         * XMLWriter does not give us much options, so we must make sure, that
-         * the header was written correctly and we can simply reuse any <url>
-         * elements that did not fit into the previous file. (See self::flush)
-         */
-        $this->writer->text(PHP_EOL);
-        $this->flush(true);
-    }
-
     /**
      * Adds a new item to sitemap images
      *
@@ -74,6 +23,7 @@ class SitemapImages extends Sitemap
         }
 
         if ($this->writerBackend === null) {
+            $this->useImage = TRUE;
             $this->createNewFile();
         }
 
@@ -99,7 +49,6 @@ class SitemapImages extends Sitemap
     private function addGroupingImage($location, $images)
     {
         $this->validateLocation($location);
-
 
         $this->writer->startElement('url');
 

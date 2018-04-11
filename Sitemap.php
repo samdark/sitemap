@@ -71,6 +71,12 @@ class Sitemap
     protected $useXhtml = false;
 
     /**
+     * @var bool if you want to generate a site map, a specified tag must be xhtml:image
+     * @see https://support.google.com/webmasters/answer/178636?hl=en
+     */
+    protected $useImage = false;
+
+    /**
      * @var array valid values for frequency parameter
      */
     private $validFrequencies = array(
@@ -130,7 +136,7 @@ class Sitemap
      * Creates new file
      * @throws \RuntimeException if file is not writeable
      */
-    private function createNewFile()
+    protected function createNewFile()
     {
         $this->fileCount++;
         $filePath = $this->getCurrentFilePath();
@@ -163,6 +169,9 @@ class Sitemap
         $this->writer->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
         if ($this->useXhtml) {
             $this->writer->writeAttribute('xmlns:xhtml', 'http://www.w3.org/1999/xhtml');
+        }
+        if ($this->useImage) {
+            $this->writer->writeAttribute('xmlns:image', 'http://www.google.com/schemas/sitemap-image/1.1');
         }
 
         /*
