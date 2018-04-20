@@ -243,8 +243,10 @@ class Sitemap
      * @param string $location
      * @throws \InvalidArgumentException
      */
-    protected function validateLocation($location) {
-        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
+    protected function validateLocation($location) 
+    {
+        $regexp = '/^(http|https|www|ftp):\\/\\/(?!\/)[-a-zA-Zа-яА-Яё0-9._~:\/?#\[\]@!$&\'()*+,;=`]+$/';
+        if (0 === preg_match($regexp, $location)) {
             throw new \InvalidArgumentException(
                 "The location must be a valid URL. You have specified: {$location}."
             );
