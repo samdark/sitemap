@@ -97,7 +97,12 @@ class Sitemap
      * @var XMLWriter
      */
     private $writer;
-
+    
+    /**
+     * @var bool Activating validating to URL 
+     */
+    private $validateUrl = true;
+    
     /**
      * @param string $filePath path of the file to write to
      * @param bool $useXhtml is XHTML namespace should be specified
@@ -239,10 +244,12 @@ class Sitemap
      * @throws \InvalidArgumentException
      */
     protected function validateLocation($location) {
-        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
-            throw new \InvalidArgumentException(
-                "The location must be a valid URL. You have specified: {$location}."
-            );
+        if($this->validateUrl == true){
+            if (false === filter_var($location, FILTER_VALIDATE_URL)) {
+                throw new \InvalidArgumentException(
+                    "The location must be a valid URL. You have specified: {$location}."
+                );
+            }
         }
     }
     
@@ -491,4 +498,15 @@ class Sitemap
         }
         $this->useGzip = $value;
     }
+    
+     /**
+     * Activating validating to URL 
+     * Default is true.
+     * @param bool $value
+     */
+    public function setValidateURL($value)
+    {
+        $this->validateUrl = (bool)$value;
+    } 
+    
 }
