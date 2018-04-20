@@ -244,12 +244,10 @@ class Sitemap
      * @throws \InvalidArgumentException
      */
     protected function validateLocation($location) {
-        if($this->validateUrl == true){
-            if (false === filter_var($location, FILTER_VALIDATE_URL)) {
-                throw new \InvalidArgumentException(
-                    "The location must be a valid URL. You have specified: {$location}."
-                );
-            }
+        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
+            throw new \InvalidArgumentException(
+                "The location must be a valid URL. You have specified: {$location}."
+            );
         }
     }
     
@@ -301,7 +299,9 @@ class Sitemap
      */
     private function addSingleLanguageItem($location, $lastModified, $changeFrequency, $priority)
     {
-        $this->validateLocation($location);
+        if($this->validateUrl === true){
+            $this->validateLocation($location);
+        }
 
 
         $this->writer->startElement('url');
@@ -351,7 +351,9 @@ class Sitemap
     private function addMultiLanguageItem($locations, $lastModified, $changeFrequency, $priority)
     {
         foreach ($locations as $language => $url) {
-            $this->validateLocation($url);
+            if($this->validateUrl === true){
+                $this->validateLocation($url);
+            }
 
             $this->writer->startElement('url');
 
