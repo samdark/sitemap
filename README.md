@@ -131,6 +131,8 @@ There are methods to configure `Sitemap` instance:
 - `setUseIndent($bool)`. Sets if XML should be indented. Default is true.
 - `setUseGzip($bool)`. Sets whether the resulting sitemap files will be gzipped or not.
   Default is `false`. `zlib` extension must be enabled to use this feature.
+- `setValidateURL($value)`. Activating validating to URL. 
+  Default is `true`.
 
 There is a method to configure `Index` instance:
 

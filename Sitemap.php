@@ -97,7 +97,12 @@ class Sitemap
      * @var XMLWriter
      */
     private $writer;
-
+    
+    /**
+     * @var bool Activating validating to URL 
+     */
+    private $validateUrl = true;
+    
     /**
      * @param string $filePath path of the file to write to
      * @param bool $useXhtml is XHTML namespace should be specified
@@ -238,8 +243,10 @@ class Sitemap
      * @param string $location
      * @throws \InvalidArgumentException
      */
-    protected function validateLocation($location) {
-        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
+    protected function validateLocation($location) 
+    {
+        $regexp = '/^(http|https|www|ftp):\\/\\/(?!\/)[-a-zA-Zа-яА-Яё0-9._~:\/?#\[\]@!$&\'()*+,;=`]+$/';
+        if (0 === preg_match($regexp, $location)) {
             throw new \InvalidArgumentException(
                 "The location must be a valid URL. You have specified: {$location}."
             );
@@ -294,7 +301,9 @@ class Sitemap
      */
     private function addSingleLanguageItem($location, $lastModified, $changeFrequency, $priority)
     {
-        $this->validateLocation($location);
+        if($this->validateUrl === true){
+            $this->validateLocation($location);
+        }
 
 
         $this->writer->startElement('url');
@@ -344,7 +353,9 @@ class Sitemap
     private function addMultiLanguageItem($locations, $lastModified, $changeFrequency, $priority)
     {
         foreach ($locations as $language => $url) {
-            $this->validateLocation($url);
+            if($this->validateUrl === true){
+                $this->validateLocation($url);
+            }
 
             $this->writer->startElement('url');
 
@@ -491,4 +502,15 @@ class Sitemap
         }
         $this->useGzip = $value;
     }
+    
+     /**
+     * Activating validating to URL 
+     * Default is true.
+     * @param bool $value
+     */
+    public function setValidateURL($value)
+    {
+        $this->validateUrl = (bool)$value;
+    } 
+    
 }
