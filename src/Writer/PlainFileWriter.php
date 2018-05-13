@@ -1,6 +1,6 @@
 <?php
 
-namespace samdark\sitemap;
+namespace SamDark\Sitemap\Writer;
 
 /**
  * Writes the given data as-is into a file
@@ -23,9 +23,9 @@ class PlainFileWriter implements WriterInterface
     /**
      * @inheritdoc
      */
-    public function append($data)
+    public function append($data): void
     {
-        assert($this->file !== null);
+        \assert($this->file !== null);
 
         fwrite($this->file, $data);
     }
@@ -33,9 +33,9 @@ class PlainFileWriter implements WriterInterface
     /**
      * @inheritdoc
      */
-    public function finish()
+    public function finish(): void
     {
-        assert($this->file !== null);
+        \assert($this->file !== null);
 
         fclose($this->file);
         $this->file = null;

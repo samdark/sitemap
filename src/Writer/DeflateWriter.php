@@ -1,6 +1,6 @@
 <?php
 
-namespace samdark\sitemap;
+namespace SamDark\Sitemap\Writer;
 
 /**
  * Flushes buffer into file with incremental deflating data, available in PHP 7.0+
@@ -32,9 +32,9 @@ class DeflateWriter implements WriterInterface
      * @param string $data
      * @param int $flushMode zlib flush mode to use for writing
      */
-    private function write($data, $flushMode)
+    private function write($data, $flushMode): void
     {
-        assert($this->file !== null);
+        \assert($this->file !== null);
 
         $compressedChunk = deflate_add($this->deflateContext, $data, $flushMode);
         fwrite($this->file, $compressedChunk);
@@ -45,7 +45,7 @@ class DeflateWriter implements WriterInterface
      *
      * @param string $data
      */
-    public function append($data)
+    public function append($data): void
     {
         $this->write($data, ZLIB_NO_FLUSH);
     }
@@ -53,7 +53,7 @@ class DeflateWriter implements WriterInterface
     /**
      * Make sure all data was written
      */
-    public function finish()
+    public function finish(): void
     {
         $this->write('', ZLIB_FINISH);
 

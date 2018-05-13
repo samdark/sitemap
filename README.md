@@ -9,7 +9,7 @@ Features
 --------
 
 - Create sitemap files: either regular or gzipped.
-- Create multi-language sitemap files.
+- Sitemap extensions support. Included extensions are multi-language sitemaps, video sitemaps, image siteamaps. 
 - Create sitemap index files.
 - Automatically creates new file if either URL limit or file size limit is reached.
 - Fast and memory efficient.
@@ -30,17 +30,29 @@ How to use it
 -------------
 
 ```php
-use samdark\sitemap\Sitemap;
-use samdark\sitemap\Index;
+use SamDark\Sitemap\Sitemap;
+use SamDark\Sitemap\Index;
 
 // create sitemap
 $sitemap = new Sitemap(__DIR__ . '/sitemap.xml');
 
 // add some URLs
-$sitemap->addItem('http://example.com/mylink1');
-$sitemap->addItem('http://example.com/mylink2', time());
-$sitemap->addItem('http://example.com/mylink3', time(), Sitemap::HOURLY);
-$sitemap->addItem('http://example.com/mylink4', time(), Sitemap::DAILY, 0.3);
+$sitemap->addUrl(new Url('http://example.com/mylink1'));
+$sitemap->addUrl(
+    (new Url('http://example.com/mylink2'))
+        ->setLastModified(new \DateTime())
+);
+$sitemap->addUrl(
+    (new Url('http://example.com/mylink3'))
+        ->setLastModified(new \DateTime())
+        ->setChangeFrequency(Frequency::HOURLY)
+);
+$sitemap->addUrl(
+    (new Url('http://example.com/mylink4'))
+        ->setChangeFrequency(Frequency::DAILY)
+        ->setLastModified(new \DateTime())
+        ->setPriority(0.3)
+);
 
 // write it
 $sitemap->write();
@@ -52,9 +64,9 @@ $sitemapFileUrls = $sitemap->getSitemapUrls('http://example.com/');
 $staticSitemap = new Sitemap(__DIR__ . '/sitemap_static.xml');
 
 // add some URLs
-$staticSitemap->addItem('http://example.com/about');
-$staticSitemap->addItem('http://example.com/tos');
-$staticSitemap->addItem('http://example.com/jobs');
+$staticSitemap->addUrl(new Url('http://example.com/about'));
+$staticSitemap->addUrl(new Url('http://example.com/tos'));
+$staticSitemap->addUrl(new Url('http://example.com/jobs'));
 
 // write it
 $staticSitemap->write();
@@ -83,36 +95,31 @@ Multi-language sitemap
 ----------------------
 
 ```php
-use samdark\sitemap\Sitemap;
+use SamDark\Sitemap\Sitemap;
 
-// create sitemap
-// be sure to pass `true` as second parameter to specify XHTML namespace
-$sitemap = new Sitemap(__DIR__ . '/sitemap_multi_language.xml', true);
-
-// Set URL limit to fit in default limit of 50000 (default limit / number of languages) 
-$sitemap->setMaxUrls(25000);
+// create sitemap declaring you need alternate links support
+$sitemap = new Sitemap(__DIR__ . '/sitemap_multi_language.xml', [AlternateLink::class]);
 
 // add some URLs
-$sitemap->addItem('http://example.com/mylink1');
 
-$sitemap->addItem([
-    'ru' => 'http://example.com/ru/mylink2',
-    'en' => 'http://example.com/en/mylink2',
-], time());
+$sitemap->addUrl(
+    (new Url('http://example.com/en/mylink2'))
+        ->setLastModified(new \DateTime())
+        ->setChangeFrequency(Frequency::HOURLY)
+        ->add(new AlternateLink('en', 'http://example.com/en/mylink1'))
+        ->add(new AlternateLink('ru', 'http://example.com/ru/mylink1'))
+);
 
-$sitemap->addItem([
-    'ru' => 'http://example.com/ru/mylink3',
-    'en' => 'http://example.com/en/mylink3',
-], time(), Sitemap::HOURLY);
-
-$sitemap->addItem([
-    'ru' => 'http://example.com/ru/mylink4',
-    'en' => 'http://example.com/en/mylink4',
-], time(), Sitemap::DAILY, 0.3);
+$sitemap->addUrl(
+    (new Url('http://example.com/en/mylink2'))
+        ->setLastModified(new \DateTime())
+        ->setChangeFrequency(Frequency::HOURLY)
+        ->add(new AlternateLink('en', 'http://example.com/en/mylink2'))
+        ->add(new AlternateLink('ru', 'http://example.com/ru/mylink2'))
+);
 
 // write it
 $sitemap->write();
-
 ```
 
 Options
