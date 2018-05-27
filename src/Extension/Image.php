@@ -5,7 +5,7 @@ namespace SamDark\Sitemap\Extension;
 
 
 /**
- * Image
+ * Image extension
  * @see https://support.google.com/webmasters/answer/178636
  */
 class Image implements ExtensionInterface
@@ -160,6 +160,6 @@ class Image implements ExtensionInterface
      */
     public static function writeXmlNamepsace(\XMLWriter $writer): void
     {
-        // TODO: Implement writeXmlNamepsace() method.
+        $writer->writeAttribute('xmlns:image', 'http://www.google.com/schemas/sitemap-image/1.1');
     }
 }
