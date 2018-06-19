@@ -135,20 +135,20 @@ class Image implements ExtensionInterface
     {
         $writer->startElement('image:image');
 
-        if (!empty($image['loc'])) {
-            $writer->writeElement('image:loc', $image['loc']);
+        if (!empty($this->location)) {
+            $writer->writeElement('image:loc', $this->location);
         }
-        if (!empty($image['caption'])) {
-            $writer->writeElement('image:caption', $image['caption']);
+        if (!empty($this->caption)) {
+            $writer->writeElement('image:caption', $this->caption);
         }
-        if (!empty($image['geo_location'])) {
-            $writer->writeElement('image:geo_location', $image['geo_location']);
+        if (!empty($this->geoLocation)) {
+            $writer->writeElement('image:geo_location', $this->geoLocation);
         }
-        if (!empty($image['title'])) {
-            $writer->writeElement('image:title', $image['title']);
+        if (!empty($this->title)) {
+            $writer->writeElement('image:title', $this->title);
         }
-        if (!empty($image['license'])) {
-            $writer->writeElement('image:license', $image['license']);
+        if (!empty($this->license)) {
+            $writer->writeElement('image:license', $this->license);
         }
 
         $writer->endElement();
