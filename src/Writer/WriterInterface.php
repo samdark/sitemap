@@ -1,5 +1,6 @@
 <?php
-namespace samdark\sitemap;
+
+namespace SamDark\Sitemap\Writer;
 
 /**
  * WriterInterface represents a data sink
@@ -14,12 +15,12 @@ interface WriterInterface
      *
      * @param string $data
      */
-    public function append($data);
+    public function append($data): void;
 
     /**
      * Ensure all queued data is written and close the target
      *
      * No further data may be appended after this.
      */
-    public function finish();
+    public function finish(): void;
 }

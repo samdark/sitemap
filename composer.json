@@ -1,4 +1,3 @@
-
 {
     "name": "samdark/sitemap",
     "description": "Sitemap and sitemap index builder",
@@ -19,15 +18,20 @@
         "source": "https://github.com/samdark/sitemap"
     },
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=7.1.0",
         "ext-xmlwriter": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4.4"
+        "phpunit/phpunit": "~7.1.5"
     },
     "autoload": {
         "psr-4": {
-            "samdark\\sitemap\\": ""
+            "SamDark\\Sitemap\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SamDark\\Sitemap\\tests\\": "tests"
         }
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace samdark\sitemap;
+namespace Samdark\Sitemap\Writer;
 
 /**
  * Flushes buffer into temporary stream and compresses stream into a file on finish
@@ -13,7 +13,7 @@ class TempFileGZIPWriter implements WriterInterface
     private $filename;
 
     /**
-     * @var ressource for php://temp stream
+     * @var resource for php://temp stream
      */
     private $tempFile;
 
@@ -31,9 +31,9 @@ class TempFileGZIPWriter implements WriterInterface
      *
      * @param string $data
      */
-    public function append($data)
+    public function append($data): void
     {
-        assert($this->tempFile !== null);
+        \assert($this->tempFile !== null);
 
         fwrite($this->tempFile, $data);
     }
@@ -41,9 +41,9 @@ class TempFileGZIPWriter implements WriterInterface
     /**
      * Deflate buffered data
      */
-    public function finish()
+    public function finish(): void
     {
-        assert($this->tempFile !== null);
+        \assert($this->tempFile !== null);
 
         $file = fopen('compress.zlib://' . $this->filename, 'wb');
         rewind($this->tempFile);
