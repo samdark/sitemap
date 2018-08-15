@@ -131,11 +131,13 @@ There are methods to configure `Sitemap` instance:
 - `setUseIndent($bool)`. Sets if XML should be indented. Default is true.
 - `setUseGzip($bool)`. Sets whether the resulting sitemap files will be gzipped or not.
   Default is `false`. `zlib` extension must be enabled to use this feature.
+- `setStylesheet($string)`. Sets the `xml-stylesheet` tag. By default, tag is not generated. 
 
 There is a method to configure `Index` instance:
 
 - `setUseGzip($bool)`. Sets whether the resulting index file will be gzipped or not.
   Default is `false`. `zlib` extension must be enabled to use this feature.
+- `setStylesheet($string)`. Sets the `xml-stylesheet` tag. By default, tag is not generated. 
 
 Running tests
 -------------

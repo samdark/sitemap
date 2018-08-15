@@ -44,6 +44,11 @@ class Sitemap
     private $filePath;
 
     /**
+     * @var string path of the xml stylesheet
+     */
+    private $stylesheet;
+
+    /**
      * @var integer number of files written
      */
     private $fileCount = 0;
@@ -158,6 +163,11 @@ class Sitemap
         $this->writer = new XMLWriter();
         $this->writer->openMemory();
         $this->writer->startDocument('1.0', 'UTF-8');
+        // Use xml stylesheet, if available
+        if ( isset($this->stylesheet) ) {
+            $this->writer->writePi('xml-stylesheet', "type=\"text/xsl\" href=\"" . $this->stylesheet . "\"");
+            $this->writer->writeRaw("\n");            
+        }
         $this->writer->setIndent($this->useIndent);
         $this->writer->startElement('urlset');
         $this->writer->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
@@ -490,5 +500,21 @@ class Sitemap
             throw new \RuntimeException('Cannot change the gzip value once items have been added to the sitemap.');
         }
         $this->useGzip = $value;
+    }
+
+    /**
+     * Sets stylesheet for the xml file
+     * Default is to not generate xml-stylesheet tag
+     * @param string $stylesheet
+     */
+    public function setStylesheet($stylesheetPath)
+    {
+        if (false === filter_var($stylesheetPath, FILTER_VALIDATE_URL)) {
+            throw new \InvalidArgumentException(
+                "The stylesheet path must be a valid URL. You have specified: {$stylesheetPath}."
+            );
+        } else {
+            $this->stylesheet = $stylesheetPath;
+        }
     }
 }
