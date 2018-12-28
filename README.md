@@ -3,7 +3,9 @@ Sitemap
 
 Sitemap and sitemap index builder.
 
-<img src="https://travis-ci.org/samdark/sitemap.svg" />
+_This is a fork of [samdark/sitemap](https://github.com/samdark/sitemap) with the difference of stylesheet support._
+
+<img src="https://travis-ci.org/paritoshbh/sitemap.svg" />
 
 Features
 --------
@@ -11,6 +13,7 @@ Features
 - Create sitemap files: either regular or gzipped.
 - Create multi-language sitemap files.
 - Create sitemap index files.
+- Use custom stylesheet.
 - Automatically creates new file if either URL limit or file size limit is reached.
 - Fast and memory efficient.
 
@@ -20,7 +23,7 @@ Installation
 Installation via Composer is very simple:
 
 ```
-composer require samdark/sitemap
+composer require paritoshbh/sitemap
 ```
 
 After that, make sure your application autoloads Composer classes by including
@@ -30,8 +33,8 @@ How to use it
 -------------
 
 ```php
-use samdark\sitemap\Sitemap;
-use samdark\sitemap\Index;
+use paritoshbh\sitemap\Sitemap;
+use paritoshbh\sitemap\Index;
 
 // create sitemap
 $sitemap = new Sitemap(__DIR__ . '/sitemap.xml');
@@ -65,6 +68,9 @@ $staticSitemapUrls = $staticSitemap->getSitemapUrls('http://example.com/');
 // create sitemap index file
 $index = new Index(__DIR__ . '/sitemap_index.xml');
 
+// set stylesheet
+$index->setStylesheet('http://example.com/css/sitemap.xsl');
+
 // add URLs
 foreach ($sitemapFileUrls as $sitemapUrl) {
     $index->addSitemap($sitemapUrl);
@@ -83,7 +89,7 @@ Multi-language sitemap
 ----------------------
 
 ```php
-use samdark\sitemap\Sitemap;
+use paritoshbh\sitemap\Sitemap;
 
 // create sitemap
 // be sure to pass `true` as second parameter to specify XHTML namespace
