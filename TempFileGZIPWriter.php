@@ -1,6 +1,6 @@
 <?php
 
-namespace samdark\sitemap;
+namespace paritoshbh\sitemap;
 
 /**
  * Flushes buffer into temporary stream and compresses stream into a file on finish

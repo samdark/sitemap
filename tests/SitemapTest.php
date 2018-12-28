@@ -1,9 +1,9 @@
 <?php
-namespace samdark\sitemap\tests;
+namespace paritoshbh\sitemap\tests;
 
 use SebastianBergmann\Timer\Timer;
 
-use samdark\sitemap\Sitemap;
+use paritoshbh\sitemap\Sitemap;
 
 class SitemapTest extends \PHPUnit_Framework_TestCase
 {

@@ -1,5 +1,5 @@
 <?php
-namespace samdark\sitemap;
+namespace paritoshbh\sitemap;
 
 /**
  * WriterInterface represents a data sink

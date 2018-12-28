@@ -1,6 +1,6 @@
 <?php
 
-namespace samdark\sitemap;
+namespace paritoshbh\sitemap;
 
 /**
  * Flushes buffer into file with incremental deflating data, available in PHP 7.0+
