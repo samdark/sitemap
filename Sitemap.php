@@ -272,7 +272,7 @@ class Sitemap
             $this->addSingleLanguageItem($location, $lastModified, $changeFrequency, $priority);
         }
 
-        $this->urlsCount++;
+        $this->urlsCount += \count($location);
 
         if ($this->urlsCount % $this->bufferSize === 0) {
             $this->flush();
