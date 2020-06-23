@@ -283,7 +283,7 @@ class Sitemap
                 $parts['extension'] = $filenameParts['extension'] . '.gz';
             }
         }
-        return $parts['dirname'] . DIRECTORY_SEPARATOR . $parts['filename'] . '_' . $this->fileCount . '.' . $parts['extension'];
+        return $parts['dirname'] . DIRECTORY_SEPARATOR . $parts['filename'] . '-' . $this->fileCount . '.' . $parts['extension'];
     }
 
     /**
