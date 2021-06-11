@@ -25,7 +25,7 @@ class Url
     private $changeFrequency;
 
     /**
-     * @var string priority (0.0-1.0). Default is 0.5.
+     * @var float priority (0.0-1.0). Default is 0.5.
      */
     private $priority = 0.5;
 
