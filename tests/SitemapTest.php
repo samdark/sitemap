@@ -197,7 +197,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue(file_exists($fileName));
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $this->assertEquals('application/x-gzip', $finfo->file($fileName));
+        $this->assertRegExp('!application/(x-)?gzip!', $finfo->file($fileName));
         $this->assertIsValidSitemap('compress.zlib://' . $fileName);
         $this->assertIsOneMemberGzipFile($fileName);
 
@@ -230,7 +230,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
         foreach ($expectedFiles as $expectedFile) {
             $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
-            $this->assertEquals('application/x-gzip', $finfo->file($expectedFile));
+            $this->assertRegExp('!application/(x-)?gzip!', $finfo->file($expectedFile));
             $this->assertIsValidSitemap('compress.zlib://' . $expectedFile);
             $this->assertIsOneMemberGzipFile($expectedFile);
             unlink($expectedFile);
