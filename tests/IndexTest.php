@@ -32,7 +32,8 @@ class IndexTest extends TestCase
 
         $this->assertFileExists($fileName);
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $this->assertEquals('application/x-gzip', $finfo->file($fileName));
+
+        $this->assertRegExp('!application/(x-)?gzip!', $finfo->file($fileName));
         $this->assertValidXml('compress.zlib://' . $fileName, 'index');
     }
 }

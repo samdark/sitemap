@@ -66,15 +66,15 @@ class SitemapTest extends TestCase
 
         $expectedFiles = [
             $this->getTempPath('testMultipleFiles.xml'),
-            $this->getTempPath('testMultipleFiles_2.xml'),
-            $this->getTempPath('testMultipleFiles_3.xml'),
-            $this->getTempPath('testMultipleFiles_4.xml'),
-            $this->getTempPath('testMultipleFiles_5.xml'),
-            $this->getTempPath('testMultipleFiles_6.xml'),
-            $this->getTempPath('testMultipleFiles_7.xml'),
-            $this->getTempPath('testMultipleFiles_8.xml'),
-            $this->getTempPath('testMultipleFiles_9.xml'),
-            $this->getTempPath('testMultipleFiles_10.xml'),
+            $this->getTempPath('testMultipleFiles-2.xml'),
+            $this->getTempPath('testMultipleFiles-3.xml'),
+            $this->getTempPath('testMultipleFiles-4.xml'),
+            $this->getTempPath('testMultipleFiles-5.xml'),
+            $this->getTempPath('testMultipleFiles-6.xml'),
+            $this->getTempPath('testMultipleFiles-7.xml'),
+            $this->getTempPath('testMultipleFiles-8.xml'),
+            $this->getTempPath('testMultipleFiles-9.xml'),
+            $this->getTempPath('testMultipleFiles-10.xml'),
         ];
         foreach ($expectedFiles as $expectedFile) {
             $this->assertFileExists($expectedFile, "$expectedFile does not exist!");
@@ -84,7 +84,7 @@ class SitemapTest extends TestCase
         $urls = $sitemap->getSitemapUrls('http://example.com/');
         $this->assertCount(10, $urls, print_r($urls, true));
         $this->assertContains('http://example.com/testMultipleFiles.xml', $urls);
-        $this->assertContains('http://example.com/testMultipleFiles_10.xml', $urls);
+        $this->assertContains('http://example.com/testMultipleFiles-10.xml', $urls);
     }
 
 
@@ -142,7 +142,7 @@ class SitemapTest extends TestCase
 
         $this->assertFileExists($fileName);
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $this->assertEquals('application/x-gzip', $finfo->file($fileName));
+        $this->assertRegExp('!application/(x-)?gzip!', $finfo->file($fileName));
         $this->assertValidXml('compress.zlib://' . $fileName, 'sitemap');
         $this->assertIsOneMemberGzipFile($fileName);
     }
@@ -163,20 +163,21 @@ class SitemapTest extends TestCase
 
         $expectedFiles = [
             $this->getTempPath('testMultipleFilesGzipped.xml.gz'),
-            $this->getTempPath('testMultipleFilesGzipped_2.xml.gz'),
-            $this->getTempPath('testMultipleFilesGzipped_3.xml.gz'),
-            $this->getTempPath('testMultipleFilesGzipped_4.xml.gz'),
-            $this->getTempPath('testMultipleFilesGzipped_5.xml.gz'),
-            $this->getTempPath('testMultipleFilesGzipped_6.xml.gz'),
-            $this->getTempPath('testMultipleFilesGzipped_7.xml.gz'),
-            $this->getTempPath('testMultipleFilesGzipped_8.xml.gz'),
-            $this->getTempPath('testMultipleFilesGzipped_9.xml.gz'),
-            $this->getTempPath('testMultipleFilesGzipped_10.xml.gz'),
+            $this->getTempPath('testMultipleFilesGzipped-2.xml.gz'),
+            $this->getTempPath('testMultipleFilesGzipped-3.xml.gz'),
+            $this->getTempPath('testMultipleFilesGzipped-4.xml.gz'),
+            $this->getTempPath('testMultipleFilesGzipped-5.xml.gz'),
+            $this->getTempPath('testMultipleFilesGzipped-6.xml.gz'),
+            $this->getTempPath('testMultipleFilesGzipped-7.xml.gz'),
+            $this->getTempPath('testMultipleFilesGzipped-8.xml.gz'),
+            $this->getTempPath('testMultipleFilesGzipped-9.xml.gz'),
+            $this->getTempPath('testMultipleFilesGzipped-10.xml.gz'),
         ];
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
         foreach ($expectedFiles as $expectedFile) {
+
             $this->assertFileExists($expectedFile, "$expectedFile does not exist!");
-            $this->assertEquals('application/x-gzip', $finfo->file($expectedFile));
+            $this->assertRegExp('!application/(x-)?gzip!', $finfo->file($expectedFile));
             $this->assertValidXml('compress.zlib://' . $expectedFile, 'sitemap');
             $this->assertIsOneMemberGzipFile($expectedFile);
         }
@@ -184,7 +185,7 @@ class SitemapTest extends TestCase
         $urls = $sitemap->getSitemapUrls('http://example.com/');
         $this->assertCount(10, $urls, print_r($urls, true));
         $this->assertContains('http://example.com/testMultipleFilesGzipped.xml.gz', $urls);
-        $this->assertContains('http://example.com/testMultipleFilesGzipped_10.xml.gz', $urls);
+        $this->assertContains('http://example.com/testMultipleFilesGzipped-10.xml.gz', $urls);
     }
 
     public function testFileSizeLimit()
@@ -204,8 +205,8 @@ class SitemapTest extends TestCase
 
         $expectedFiles = [
             $this->getTempPath('testFileSizeLimit.xml'),
-            $this->getTempPath('testFileSizeLimit_2.xml'),
-            $this->getTempPath('testFileSizeLimit_3.xml'),
+            $this->getTempPath('testFileSizeLimit-2.xml'),
+            $this->getTempPath('testFileSizeLimit-3.xml'),
         ];
 
         foreach ($expectedFiles as $expectedFile) {
@@ -217,7 +218,7 @@ class SitemapTest extends TestCase
         $urls = $sitemap->getSitemapUrls('http://example.com/');
         $this->assertCount(3, $urls, print_r($urls, true));
         $this->assertContains('http://example.com/testFileSizeLimit.xml', $urls);
-        $this->assertContains('http://example.com/testFileSizeLimit_3.xml', $urls);
+        $this->assertContains('http://example.com/testFileSizeLimit-3.xml', $urls);
     }
 
     public function testSmallSizeLimit()
