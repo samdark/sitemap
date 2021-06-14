@@ -52,10 +52,12 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
     public function testAgainstExpectedXml() {
         $fileName = __DIR__ . '/sitemap_regular.xml';
         $sitemap = new Sitemap($fileName);
-        $sitemap->addItem('http://example.com/mylink1', (new \DateTime('2021-01-11 01:01'))->format('U'));
-        $sitemap->addItem('http://example.com/mylink3', (new \DateTime('2021-01-02 03:04'))->format('U'), Sitemap::HOURLY);
+
+        $sitemap->addItem('http://example.com/test.html&q=name', (new \DateTime('2021-01-11 01:01'))->format('U'));
+        $sitemap->addItem('http://example.com/mylink?foo=bar', (new \DateTime('2021-01-02 03:04'))->format('U'), Sitemap::HOURLY);
         
         $sitemap->addItem('http://example.com/mylink4', (new \DateTime('2021-01-02 03:04'))->format('U'), Sitemap::DAILY, 0.3);
+
         $sitemap->write();
 
         $this->assertFileExists($fileName);
@@ -64,11 +66,11 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
  <url>
-  <loc>http://example.com/mylink1</loc>
+  <loc>http://example.com/test.html&amp;q=name</loc>
   <lastmod>2021-01-11T01:01:00+00:00</lastmod>
  </url>
  <url>
-  <loc>http://example.com/mylink3</loc>
+  <loc>http://example.com/mylink?foo=bar</loc>
   <lastmod>2021-01-02T03:04:00+00:00</lastmod>
   <changefreq>hourly</changefreq>
  </url>
