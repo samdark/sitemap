@@ -13,7 +13,7 @@ class TempFileGZIPWriter implements WriterInterface
     private $filename;
 
     /**
-     * @var null|resource for php://temp stream
+     * @var null|resource|closed-resource for php://temp stream
      */
     private $tempFile;
 
@@ -51,8 +51,7 @@ class TempFileGZIPWriter implements WriterInterface
 
         fclose($file);
 
-        $t = $this->tempFile;
-        fclose($t);
+        fclose($this->tempFile);
         $this->tempFile = null;
     }
 }
