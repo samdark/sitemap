@@ -47,7 +47,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue(file_exists($fileName));
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $this->assertEquals('application/x-gzip', $finfo->file($fileName));
+        $this->assertRegExp('!application/(x-)?gzip!', $finfo->file($fileName));
         $this->assertIsValidIndex('compress.zlib://' . $fileName);
         unlink($fileName);
     }

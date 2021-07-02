@@ -1,0 +1,27 @@
+on: push
+
+name: GitHub Action
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-versions: ['5.6', '7.0', '7.1', '7.2', '7.3', '7.4' ]
+        phpunit-versions: ['latest']
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-versions }}
+        tools: composer
+       
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: phpunit
+      run: composer test
+      
