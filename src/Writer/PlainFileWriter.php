@@ -8,7 +8,7 @@ namespace SamDark\Sitemap\Writer;
 class PlainFileWriter implements WriterInterface
 {
     /**
-     * @var null|resource for target file
+     * @var null|resource|closed-resource for target file
      */
     private $file;
 
@@ -37,9 +37,7 @@ class PlainFileWriter implements WriterInterface
     {
         \assert($this->file !== null);
 
-        $x = $this->file;
-        fclose($x);
-
+        fclose($this->file);
         
         $this->file = null;
     }
