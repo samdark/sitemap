@@ -3,7 +3,7 @@ namespace SamDark\Sitemap;
 
 use SamDark\Sitemap\Writer\DeflateWriter;
 use SamDark\Sitemap\Writer\PlainFileWriter;
-use Samdark\Sitemap\Writer\TempFileGZIPWriter;
+use SamDark\Sitemap\Writer\TempFileGZIPWriter;
 use SamDark\Sitemap\Writer\WriterInterface;
 use XMLWriter;
 
@@ -143,7 +143,7 @@ class Sitemap
          * elements that did not fit into the previous file. (See self::flush)
          */
         $this->writer->text(PHP_EOL);
-        $this->flush(true);
+        $this->flush();
     }
 
     /**

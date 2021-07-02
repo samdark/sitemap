@@ -22,7 +22,8 @@
         "ext-xmlwriter": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "~7.1.5"
+        "phpunit/phpunit": "~7.1.5",
+        "vimeo/psalm": "*"
     },
     "autoload": {
         "psr-4": {
@@ -33,5 +34,13 @@
         "psr-4": {
             "SamDark\\Sitemap\\tests\\": "tests"
         }
+    },
+    "scripts": {
+        "test" : "@php vendor/bin/phpunit tests",
+        "psalm" : "@php vendor/bin/psalm",
+        "build" : [
+           "@psalm",
+           "@test" 
+        ]
     }
 }

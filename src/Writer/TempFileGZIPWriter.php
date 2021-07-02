@@ -1,6 +1,6 @@
 <?php
 
-namespace Samdark\Sitemap\Writer;
+namespace SamDark\Sitemap\Writer;
 
 /**
  * Flushes buffer into temporary stream and compresses stream into a file on finish
@@ -13,7 +13,7 @@ class TempFileGZIPWriter implements WriterInterface
     private $filename;
 
     /**
-     * @var resource for php://temp stream
+     * @var null|resource|closed-resource for php://temp stream
      */
     private $tempFile;
 
@@ -50,6 +50,7 @@ class TempFileGZIPWriter implements WriterInterface
         stream_copy_to_stream($this->tempFile, $file);
 
         fclose($file);
+
         fclose($this->tempFile);
         $this->tempFile = null;
     }

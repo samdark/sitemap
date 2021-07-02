@@ -16,7 +16,7 @@ abstract class CountryRestriction
         $this->countries = $countries;
     }
 
-    private function validateCountry()
+    private function validateCountry($name)
     {
         // TODO: ISO 3166
     }
