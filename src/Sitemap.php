@@ -3,7 +3,7 @@ namespace SamDark\Sitemap;
 
 use SamDark\Sitemap\Writer\DeflateWriter;
 use SamDark\Sitemap\Writer\PlainFileWriter;
-use Samdark\Sitemap\Writer\TempFileGZIPWriter;
+use SamDark\Sitemap\Writer\TempFileGZIPWriter;
 use SamDark\Sitemap\Writer\WriterInterface;
 use XMLWriter;
 
