@@ -5,7 +5,7 @@ Sitemap and sitemap index builder.
 
 _This is a fork of [samdark/sitemap](https://github.com/samdark/sitemap) with the difference of stylesheet support._
 
-<img src="https://api.travis-ci.org/ParitoshBh/sitemap.svg" />
+<img src="https://travis-ci.org/paritoshbh/sitemap.svg" />
 
 Features
 --------
