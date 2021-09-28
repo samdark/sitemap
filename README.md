@@ -11,6 +11,7 @@ Features
 - Create sitemap files: either regular or gzipped.
 - Create multi-language sitemap files.
 - Create sitemap index files.
+- Use custom stylesheet.
 - Automatically creates new file if either URL limit or file size limit is reached.
 - Fast and memory efficient.
 
@@ -64,6 +65,9 @@ $staticSitemapUrls = $staticSitemap->getSitemapUrls('http://example.com/');
 
 // create sitemap index file
 $index = new Index(__DIR__ . '/sitemap_index.xml');
+
+// set stylesheet
+$index->setStylesheet('http://example.com/css/sitemap.xsl');
 
 // add URLs
 foreach ($sitemapFileUrls as $sitemapUrl) {
