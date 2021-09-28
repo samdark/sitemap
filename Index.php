@@ -46,8 +46,8 @@ class Index
         $this->writer = new XMLWriter();
         $this->writer->openMemory();
         $this->writer->startDocument('1.0', 'UTF-8');
-        // Use xml stylesheet, if available
-        if ( isset($this->stylesheet) ) {
+        // Use XML stylesheet, if available
+        if (isset($this->stylesheet)) {
             $this->writer->writePi('xml-stylesheet', "type=\"text/xsl\" href=\"" . $this->stylesheet . "\"");
             $this->writer->writeRaw("\n");            
         }
@@ -122,18 +122,18 @@ class Index
     }
 
     /**
-     * Sets stylesheet for the xml file
-     * Default is to not generate xml-stylesheet tag
-     * @param string $stylesheet
+     * Sets stylesheet for the XML file.
+     * Default is to not generate XML-stylesheet tag.
+     * @param string $stylesheetUrl Stylesheet URL.
      */
-    public function setStylesheet($stylesheetPath)
+    public function setStylesheet($stylesheetUrl)
     {
-        if (false === filter_var($stylesheetPath, FILTER_VALIDATE_URL)) {
+        if (false === filter_var($stylesheetUrl, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException(
-                "The stylesheet path must be a valid URL. You have specified: {$stylesheetPath}."
+                "The stylesheet URL is not valid. You have specified: {$stylesheetUrl}."
             );
         } else {
-            $this->stylesheet = $stylesheetPath;
+            $this->stylesheet = $stylesheetUrl;
         }
     }
 }
