@@ -1,5 +1,5 @@
 <?php
-namespace paritoshbh\sitemap;
+namespace samdark\sitemap;
 
 use XMLWriter;
 

@@ -1,27 +1,22 @@
 
 {
-    "name": "paritoshbh/sitemap",
+    "name": "samdark/sitemap",
     "description": "Sitemap and sitemap index builder",
     "keywords": [
         "sitemap"
     ],
-    "homepage": "https://github.com/ParitoshBh/sitemap",
+    "homepage": "https://github.com/samdark/sitemap",
     "license": "BSD-3-Clause",
     "authors": [
         {
             "name": "Alexander Makarov",
             "email": "sam@rmcreative.ru",
             "homepage": "http://rmcreative.ru/"
-        },
-        {
-            "name": "Paritosh Bhatia",
-            "email": "paritosh.bh@outlook.com",
-            "homepage": "https://paritoshbh.me/"
         }
     ],
     "support": {
-        "issues": "https://github.com/ParitoshBh/sitemap/issues",
-        "source": "https://github.com/ParitoshBh/sitemap"
+        "issues": "https://github.com/samdark/sitemap/issues",
+        "source": "https://github.com/samdark/sitemap"
     },
     "require": {
         "php": ">=5.3.0",
@@ -32,7 +27,7 @@
     },
     "autoload": {
         "psr-4": {
-            "paritoshbh\\sitemap\\": ""
+            "samdark\\sitemap\\": ""
         }
     }
 }

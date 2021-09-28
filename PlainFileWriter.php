@@ -1,6 +1,6 @@
 <?php
 
-namespace paritoshbh\sitemap;
+namespace samdark\sitemap;
 
 /**
  * Writes the given data as-is into a file
