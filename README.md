@@ -3,7 +3,7 @@ Sitemap
 
 Sitemap and sitemap index builder.
 
-<img src="https://travis-ci.org/samdark/sitemap.svg" />
+[![GitHub Action](https://github.com/samdark/sitemap/actions/workflows/php.yml/badge.svg)](https://github.com/samdark/sitemap/actions/workflows/php.yml)
 
 Features
 --------
