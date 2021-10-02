@@ -1,9 +1,14 @@
 Sitemap
 =======
 
-Sitemap and sitemap index builder.
+XML Sitemap and XML Sitemap Index builder.
 
-[![GitHub Action](https://github.com/samdark/sitemap/actions/workflows/php.yml/badge.svg)](https://github.com/samdark/sitemap/actions/workflows/php.yml)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/samdark/sitemap?sort=semver&style=flat-square)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/samdark/sitemap/GitHub%20Action/master?label=tests&style=flat-square)
+![Packagist PHP Version Support](https://img.shields.io/packagist/php-v/samdark/sitemap?style=flat-square)
+![Packagist Downloads](https://img.shields.io/packagist/dm/samdark/sitemap?style=flat-square)
+![Packagist Downloads](https://img.shields.io/packagist/dt/samdark/sitemap?style=flat-square&label=total%20downloads)
+![GitHub](https://img.shields.io/github/license/samdark/sitemap?style=flat-square)
 
 Features
 --------
