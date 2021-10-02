@@ -43,6 +43,9 @@ $sitemap->addItem('http://example.com/mylink2', time());
 $sitemap->addItem('http://example.com/mylink3', time(), Sitemap::HOURLY);
 $sitemap->addItem('http://example.com/mylink4', time(), Sitemap::DAILY, 0.3);
 
+// set sitemap stylesheet (see example-sitemap-stylesheet.xsl)
+$sitemap->setStylesheet('http://example.com/css/sitemap.xsl');
+
 // write it
 $sitemap->write();
 
@@ -57,6 +60,9 @@ $staticSitemap->addItem('http://example.com/about');
 $staticSitemap->addItem('http://example.com/tos');
 $staticSitemap->addItem('http://example.com/jobs');
 
+// set optional stylesheet (see example-sitemap-stylesheet.xsl)
+$staticSitemap->setStylesheet('http://example.com/css/sitemap.xsl');
+
 // write it
 $staticSitemap->write();
 
@@ -66,7 +72,7 @@ $staticSitemapUrls = $staticSitemap->getSitemapUrls('http://example.com/');
 // create sitemap index file
 $index = new Index(__DIR__ . '/sitemap_index.xml');
 
-// set stylesheet
+// set index stylesheet (see example in repo)
 $index->setStylesheet('http://example.com/css/sitemap.xsl');
 
 // add URLs
@@ -114,6 +120,9 @@ $sitemap->addItem([
     'en' => 'http://example.com/en/mylink4',
 ], time(), Sitemap::DAILY, 0.3);
 
+// set stylesheet (see example-sitemap-stylesheet.xsl)
+$sitemap->setStylesheet('http://example.com/css/sitemap.xsl');
+
 // write it
 $sitemap->write();
 
@@ -135,13 +144,13 @@ There are methods to configure `Sitemap` instance:
 - `setUseIndent($bool)`. Sets if XML should be indented. Default is true.
 - `setUseGzip($bool)`. Sets whether the resulting sitemap files will be gzipped or not.
   Default is `false`. `zlib` extension must be enabled to use this feature.
-- `setStylesheet($string)`. Sets the `xml-stylesheet` tag. By default, tag is not generated. 
+- `setStylesheet($string)`. Sets the `xml-stylesheet` tag. By default, tag is not generated. See example [example-sitemap-stylesheet.xsl](/example-sitemap-stylesheet.xsl)  
 
 There is a method to configure `Index` instance:
 
 - `setUseGzip($bool)`. Sets whether the resulting index file will be gzipped or not.
   Default is `false`. `zlib` extension must be enabled to use this feature.
-- `setStylesheet($string)`. Sets the `xml-stylesheet` tag. By default, tag is not generated. 
+- `setStylesheet($string)`. Sets the `xml-stylesheet` tag. By default, tag is not generated. See example [example-sitemap-stylesheet.xsl](/example-sitemap-stylesheet.xsl) 
 
 Running tests
 -------------
