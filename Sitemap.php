@@ -191,15 +191,16 @@ class Sitemap
 
     /**
      * Writes closing tags to current file
+     * @param bool $restoreUrlsCount if true set urlsCount to a number of leftover urls, if false set urlsCount to 0
      */
-    private function finishFile()
+    private function finishFile($restoreUrlsCount = false)
     {
         if ($this->writer !== null) {
             $this->writer->endElement();
             $this->writer->endDocument();
 
             /* To prevent infinite recursion through flush */
-            $this->urlsCount = $this->urlsCount - $this->urlsCountWritten;
+            $this->urlsCount = $restoreUrlsCount ? $this->urlsCount - $this->urlsCountWritten : 0;
 
             $this->flush(0);
             $this->writerBackend->finish();
@@ -238,7 +239,7 @@ class Sitemap
             if ($this->urlsCount <= 1) {
                 throw new \OverflowException('The buffer size is too big for the defined file size limit');
             }
-            $this->finishFile();
+            $this->finishFile(true);
             $this->createNewFile();
         }
 
