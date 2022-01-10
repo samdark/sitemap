@@ -171,7 +171,7 @@ class Sitemap
         // Use XML stylesheet, if available
         if (isset($this->stylesheet)) {
             $this->writer->writePi('xml-stylesheet', "type=\"text/xsl\" href=\"" . $this->stylesheet . "\"");
-            $this->writer->writeRaw("\n");
+            $this->writer->writeRaw(PHP_EOL);
         }
         $this->writer->setIndent($this->useIndent);
         $this->writer->startElement('urlset');
@@ -185,7 +185,7 @@ class Sitemap
          * the header was written correctly and we can simply reuse any <url>
          * elements that did not fit into the previous file. (See self::flush)
          */
-        $this->writer->text("\n");
+        $this->writer->text(PHP_EOL);
         $this->flush();
     }
 
