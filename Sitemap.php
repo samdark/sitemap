@@ -29,6 +29,11 @@ class Sitemap
     private $urlsCount = 0;
 
     /**
+     * @var integer number of URLs written
+     */
+    private $urlsCountWritten = 0;
+
+    /**
      * @var integer Maximum allowed number of bytes in a single file.
      */
     private $maxBytes = 10485760;
@@ -130,7 +135,7 @@ class Sitemap
     {
         return $this->writtenFilePaths;
     }
-    
+
     /**
      * Creates new file
      * @throws \RuntimeException if file is not writeable
@@ -166,7 +171,7 @@ class Sitemap
         // Use XML stylesheet, if available
         if (isset($this->stylesheet)) {
             $this->writer->writePi('xml-stylesheet', "type=\"text/xsl\" href=\"" . $this->stylesheet . "\"");
-            $this->writer->writeRaw("\n");            
+            $this->writer->writeRaw("\n");
         }
         $this->writer->setIndent($this->useIndent);
         $this->writer->startElement('urlset');
@@ -181,7 +186,7 @@ class Sitemap
          * elements that did not fit into the previous file. (See self::flush)
          */
         $this->writer->text("\n");
-        $this->flush(true);
+        $this->flush();
     }
 
     /**
@@ -194,7 +199,7 @@ class Sitemap
             $this->writer->endDocument();
 
             /* To prevent infinite recursion through flush */
-            $this->urlsCount = 0;
+            $this->urlsCount = $this->urlsCount - $this->urlsCountWritten;
 
             $this->flush(0);
             $this->writerBackend->finish();
@@ -239,6 +244,7 @@ class Sitemap
 
         $this->writerBackend->append($data);
         $this->byteCount += $dataSize;
+        $this->urlsCountWritten = $this->urlsCount;
     }
 
     /**
@@ -255,7 +261,7 @@ class Sitemap
             );
         }
     }
-    
+
     /**
      * Adds a new item to sitemap
      *
