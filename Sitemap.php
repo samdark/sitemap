@@ -171,7 +171,7 @@ class Sitemap
         // Use XML stylesheet, if available
         if (isset($this->stylesheet)) {
             $this->writer->writePi('xml-stylesheet', "type=\"text/xsl\" href=\"" . $this->stylesheet . "\"");
-            $this->writer->writeRaw(PHP_EOL);
+            $this->writer->writeRaw("\n");
         }
         $this->writer->setIndent($this->useIndent);
         $this->writer->startElement('urlset');
