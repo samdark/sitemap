@@ -185,7 +185,7 @@ class Sitemap
          * the header was written correctly and we can simply reuse any <url>
          * elements that did not fit into the previous file. (See self::flush)
          */
-        $this->writer->text(PHP_EOL);
+        $this->writer->text("\n");
         $this->flush();
     }
 
