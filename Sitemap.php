@@ -181,7 +181,7 @@ class Sitemap
          * elements that did not fit into the previous file. (See self::flush)
          */
         $this->writer->text("\n");
-        $this->flush(true);
+        $this->flush();
     }
 
     /**
@@ -209,17 +209,22 @@ class Sitemap
      */
     public function write()
     {
-        $this->finishFile();
+        if ($this->writer !== null) {
+            $this->flush();
+            $this->finishFile();
+        }
     }
 
     /**
      * Flushes buffer into file
      *
      * @param int $footSize Size of the remaining closing tags
+     * @return bool is new file created
      * @throws \OverflowException
      */
     private function flush($footSize = 10)
     {
+        $isNewFileCreated = false;
         $data = $this->writer->flush(true);
         $dataSize = mb_strlen($data, '8bit');
 
@@ -235,10 +240,13 @@ class Sitemap
             }
             $this->finishFile();
             $this->createNewFile();
+            $isNewFileCreated = true;
         }
 
         $this->writerBackend->append($data);
         $this->byteCount += $dataSize;
+
+        return $isNewFileCreated;
     }
 
     /**
@@ -268,8 +276,11 @@ class Sitemap
      */
     public function addItem($location, $lastModified = null, $changeFrequency = null, $priority = null)
     {
-        if ($this->urlsCount >= $this->maxUrls) {
-            $this->finishFile();
+        if ($this->urlsCount >= $this->maxUrls && $this->writer !== null) {
+            $isNewFileCreated = $this->flush();
+            if (!$isNewFileCreated) {
+                $this->finishFile();
+            }
         }
 
         if ($this->writerBackend === null) {
