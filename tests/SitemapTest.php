@@ -7,6 +7,10 @@ use samdark\sitemap\Sitemap;
 
 class SitemapTest extends \PHPUnit_Framework_TestCase
 {
+    const HEADER_LENGTH = 100;
+    const FOOTER_LENGTH = 10;
+    const ELEMENT_LENGTH_WITHOUT_URL = 137;
+
     /**
      * Asserts validity of simtemap according to XSD schema
      * @param string $fileName
@@ -364,5 +368,162 @@ EOF;
         }
 
         $this->assertLessThan($times[0] * 1.2, $times[1]);
+    }
+
+    public function testBufferSizeIsNotTooBigOnFinishFileInWrite()
+    {
+        $time = 100;
+        $urlLength = 13;
+        $urlsQty = 4;
+
+        $sitemapPath = __DIR__ . '/sitemap.xml';
+        $sitemap = new Sitemap($sitemapPath);
+        $sitemap->setBufferSize(3);
+        $sitemap->setMaxUrls(4);
+        $sitemap->setMaxBytes(
+            self::HEADER_LENGTH + self::FOOTER_LENGTH + self::ELEMENT_LENGTH_WITHOUT_URL * $urlsQty
+                + $urlLength * $urlsQty - 1
+        );
+
+        for ($i = 0; $i < $urlsQty; $i++) {
+            $sitemap->addItem(
+                // url 13 bytes
+                "https://a.b/{$i}",
+                $time,
+                Sitemap::WEEKLY,
+                1
+            );
+        }
+        $sitemap->write();
+
+        $expectedFiles = array(
+            __DIR__ . '/sitemap.xml',
+            __DIR__ . '/sitemap_2.xml',
+        );
+        $expected[] = <<<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+ <url>
+  <loc>https://a.b/0</loc>
+  <lastmod>1970-01-01T00:01:40+00:00</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>1.0</priority>
+ </url>
+ <url>
+  <loc>https://a.b/1</loc>
+  <lastmod>1970-01-01T00:01:40+00:00</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>1.0</priority>
+ </url>
+ <url>
+  <loc>https://a.b/2</loc>
+  <lastmod>1970-01-01T00:01:40+00:00</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>1.0</priority>
+ </url>
+</urlset>
+EOF;
+        $expected[] = <<<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+ <url>
+  <loc>https://a.b/3</loc>
+  <lastmod>1970-01-01T00:01:40+00:00</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>1.0</priority>
+ </url>
+</urlset>
+EOF;
+        foreach ($expectedFiles as $expectedFileNumber => $expectedFile) {
+            $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
+            $this->assertIsValidSitemap($expectedFile);
+
+            $actual = trim(file_get_contents($expectedFile));
+            $this->assertEquals($expected[$expectedFileNumber], $actual);
+
+            unlink($expectedFile);
+        }
+    }
+
+    public function testBufferSizeIsNotTooBigOnFinishFileInAddItem()
+    {
+        $time = 100;
+        $urlLength = 13;
+        $urlsQty = 5;
+
+        $sitemapPath = __DIR__ . '/sitemap.xml';
+        $sitemap = new Sitemap($sitemapPath);
+        $sitemap->setBufferSize(3);
+        $sitemap->setMaxUrls(4);
+        $sitemap->setMaxBytes(
+            // 100 + 10 + 137 * 4
+            self::HEADER_LENGTH + self::FOOTER_LENGTH + self::ELEMENT_LENGTH_WITHOUT_URL * 4
+                + $urlLength * 4 - 1
+        );
+
+        for ($i = 0; $i < $urlsQty; $i++) {
+            $sitemap->addItem(
+                // url 13 bytes
+                "https://a.b/{$i}",
+                $time,
+                Sitemap::WEEKLY,
+                1
+            );
+        }
+        $sitemap->write();
+
+        $expectedFiles = array(
+            __DIR__ . '/sitemap.xml',
+            __DIR__ . '/sitemap_2.xml',
+        );
+        $expected[] = <<<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+ <url>
+  <loc>https://a.b/0</loc>
+  <lastmod>1970-01-01T00:01:40+00:00</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>1.0</priority>
+ </url>
+ <url>
+  <loc>https://a.b/1</loc>
+  <lastmod>1970-01-01T00:01:40+00:00</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>1.0</priority>
+ </url>
+ <url>
+  <loc>https://a.b/2</loc>
+  <lastmod>1970-01-01T00:01:40+00:00</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>1.0</priority>
+ </url>
+</urlset>
+EOF;
+        $expected[] = <<<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+ <url>
+  <loc>https://a.b/3</loc>
+  <lastmod>1970-01-01T00:01:40+00:00</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>1.0</priority>
+ </url>
+ <url>
+  <loc>https://a.b/4</loc>
+  <lastmod>1970-01-01T00:01:40+00:00</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>1.0</priority>
+ </url>
+</urlset>
+EOF;
+        foreach ($expectedFiles as $expectedFileNumber => $expectedFile) {
+            $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
+            $this->assertIsValidSitemap($expectedFile);
+
+            $actual = trim(file_get_contents($expectedFile));
+            $this->assertEquals($expected[$expectedFileNumber], $actual);
+
+            unlink($expectedFile);
+        }
     }
 }
