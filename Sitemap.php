@@ -181,7 +181,7 @@ class Sitemap
          * elements that did not fit into the previous file. (See self::flush)
          */
         $this->writer->text("\n");
-        $this->flush();
+        $this->flush(0);
     }
 
     /**
