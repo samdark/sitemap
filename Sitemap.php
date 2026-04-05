@@ -201,6 +201,7 @@ class Sitemap
             $this->writerBackend = null;
 
             $this->byteCount = 0;
+            $this->writer = null;
         }
     }
 
@@ -212,6 +213,18 @@ class Sitemap
         if ($this->writer !== null) {
             $this->flush();
             $this->finishFile();
+        }
+    }
+
+    /**
+     * Finishes writing when the object is destroyed
+     */
+    public function __destruct()
+    {
+        try {
+            $this->write();
+        } catch (\Throwable $e) {
+            // Exceptions must not propagate out of __destruct()
         }
     }
 
