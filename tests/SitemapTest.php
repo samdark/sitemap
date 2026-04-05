@@ -527,6 +527,61 @@ EOF;
         }
     }
 
+    public function testStylesheetIsIncludedInOutput()
+    {
+        $fileName = __DIR__ . '/sitemap_stylesheet.xml';
+        $sitemap = new Sitemap($fileName);
+        $sitemap->setStylesheet('http://example.com/sitemap.xsl');
+        $sitemap->addItem('http://example.com/mylink1');
+        $sitemap->write();
+
+        $this->assertFileExists($fileName);
+        $content = file_get_contents($fileName);
+        $this->assertStringContainsString('<?xml-stylesheet', $content);
+        $this->assertStringContainsString('type="text/xsl"', $content);
+        $this->assertStringContainsString('href="http://example.com/sitemap.xsl"', $content);
+        $this->assertIsValidSitemap($fileName);
+
+        unlink($fileName);
+    }
+
+    public function testStylesheetInvalidUrlThrowsException()
+    {
+        $this->expectException('InvalidArgumentException');
+
+        $fileName = __DIR__ . '/sitemap.xml';
+        $sitemap = new Sitemap($fileName);
+        $sitemap->setStylesheet('not-a-valid-url');
+
+        unlink($fileName);
+    }
+
+    public function testStylesheetInMultipleFiles()
+    {
+        $sitemap = new Sitemap(__DIR__ . '/sitemap_stylesheet_multi.xml');
+        $sitemap->setStylesheet('http://example.com/sitemap.xsl');
+        $sitemap->setMaxUrls(2);
+
+        for ($i = 0; $i < 4; $i++) {
+            $sitemap->addItem('http://example.com/mylink' . $i, time());
+        }
+        $sitemap->write();
+
+        $expectedFiles = array(
+            __DIR__ . '/sitemap_stylesheet_multi.xml',
+            __DIR__ . '/sitemap_stylesheet_multi_2.xml',
+        );
+        foreach ($expectedFiles as $expectedFile) {
+            $this->assertFileExists($expectedFile);
+            $content = file_get_contents($expectedFile);
+            $this->assertStringContainsString('<?xml-stylesheet', $content);
+            $this->assertStringContainsString('type="text/xsl"', $content);
+            $this->assertStringContainsString('href="http://example.com/sitemap.xsl"', $content);
+            $this->assertIsValidSitemap($expectedFile);
+            unlink($expectedFile);
+        }
+    }
+
     public function testFileEndsWithClosingTagWhenWriteNotCalledExplicitly()
     {
         $fileName = __DIR__ . '/sitemap_no_explicit_write.xml';

@@ -36,6 +36,35 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         unlink($fileName);
     }
 
+    public function testStylesheetIsIncludedInOutput()
+    {
+        $fileName = __DIR__ . '/sitemap_index_stylesheet.xml';
+        $index = new Index($fileName);
+        $index->setStylesheet('http://example.com/sitemap.xsl');
+        $index->addSitemap('http://example.com/sitemap.xml');
+        $index->write();
+
+        $this->assertFileExists($fileName);
+        $content = file_get_contents($fileName);
+        $this->assertStringContainsString('<?xml-stylesheet', $content);
+        $this->assertStringContainsString('type="text/xsl"', $content);
+        $this->assertStringContainsString('href="http://example.com/sitemap.xsl"', $content);
+        $this->assertIsValidIndex($fileName);
+
+        unlink($fileName);
+    }
+
+    public function testStylesheetInvalidUrlThrowsException()
+    {
+        $this->expectException('InvalidArgumentException');
+
+        $fileName = __DIR__ . '/sitemap_index.xml';
+        $index = new Index($fileName);
+        $index->setStylesheet('not-a-valid-url');
+
+        unlink($fileName);
+    }
+
     public function testWritingFileGzipped()
     {
         $fileName = __DIR__ . '/sitemap_index.xml.gz';
