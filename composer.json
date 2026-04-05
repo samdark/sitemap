@@ -26,7 +26,7 @@
        "test" : "@php vendor/bin/phpunit tests"  
     },
     "require-dev": {
-        "phpunit/phpunit": "~4.4"
+        "phpunit/phpunit": "^9.0"
     },
     "autoload": {
         "psr-4": {

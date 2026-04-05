@@ -5,7 +5,7 @@ use SebastianBergmann\Timer\Timer;
 
 use samdark\sitemap\Sitemap;
 
-class SitemapTest extends \PHPUnit_Framework_TestCase
+class SitemapTest extends \PHPUnit\Framework\TestCase
 {
     const HEADER_LENGTH = 100;
     const FOOTER_LENGTH = 10;
@@ -49,7 +49,7 @@ class SitemapTest extends \PHPUnit_Framework_TestCase
 
         unlink($fileName);
 
-        $this->assertFileNotExists($fileName);
+        $this->assertFileDoesNotExist($fileName);
     }
 
 
@@ -159,7 +159,7 @@ EOF;
 
     public function testFrequencyValidation()
     {
-        $this->setExpectedException('InvalidArgumentException');
+        $this->expectException('InvalidArgumentException');
 
         $fileName = __DIR__ . '/sitemap.xml';
         $sitemap = new Sitemap($fileName);
@@ -244,7 +244,7 @@ EOF;
 
         $this->assertTrue(file_exists($fileName));
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $this->assertRegExp('!application/(x-)?gzip!', $finfo->file($fileName));
+        $this->assertMatchesRegularExpression('!application/(x-)?gzip!', $finfo->file($fileName));
         $this->assertIsValidSitemap('compress.zlib://' . $fileName);
         $this->assertIsOneMemberGzipFile($fileName);
 
@@ -277,7 +277,7 @@ EOF;
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
         foreach ($expectedFiles as $expectedFile) {
             $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
-            $this->assertRegExp('!application/(x-)?gzip!', $finfo->file($expectedFile));
+            $this->assertMatchesRegularExpression('!application/(x-)?gzip!', $finfo->file($expectedFile));
             $this->assertIsValidSitemap('compress.zlib://' . $expectedFile);
             $this->assertIsOneMemberGzipFile($expectedFile);
             unlink($expectedFile);
@@ -525,5 +525,28 @@ EOF;
 
             unlink($expectedFile);
         }
+    }
+
+    public function testFileEndsWithClosingTagWhenWriteNotCalledExplicitly()
+    {
+        $fileName = __DIR__ . '/sitemap_no_explicit_write.xml';
+        $sitemap = new Sitemap($fileName);
+
+        // Add enough items to exceed the default buffer size (10) so data is flushed to disk
+        for ($i = 1; $i <= 10; $i++) {
+            $sitemap->addItem('http://example.com/mylink' . $i);
+        }
+
+        // Destroy the sitemap object without calling write() — simulates forgetting to call write()
+        unset($sitemap);
+
+        $this->assertFileExists($fileName);
+
+        $content = trim(file_get_contents($fileName));
+
+        // The file must end with the closing urlset tag even though write() was not called explicitly
+        $this->assertStringEndsWith('</urlset>', $content, 'Sitemap file must end with </urlset> even when write() is not called explicitly.');
+
+        unlink($fileName);
     }
 }

@@ -3,7 +3,7 @@ namespace samdark\sitemap\tests;
 
 use samdark\sitemap\Index;
 
-class IndexTest extends \PHPUnit_Framework_TestCase
+class IndexTest extends \PHPUnit\Framework\TestCase
 {
     protected function assertIsValidIndex($fileName)
     {
@@ -27,7 +27,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
 
     public function testLocationValidation()
     {
-        $this->setExpectedException('InvalidArgumentException');
+        $this->expectException('InvalidArgumentException');
 
         $fileName = __DIR__ . '/sitemap.xml';
         $index = new Index($fileName);
@@ -47,7 +47,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue(file_exists($fileName));
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $this->assertRegExp('!application/(x-)?gzip!', $finfo->file($fileName));
+        $this->assertMatchesRegularExpression('!application/(x-)?gzip!', $finfo->file($fileName));
         $this->assertIsValidIndex('compress.zlib://' . $fileName);
         unlink($fileName);
     }

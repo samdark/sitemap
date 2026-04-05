@@ -1,1 +1,5 @@
 vendor
+composer.lock
+.phpunit.result.cache
+tests/*.xml
+tests/*.xml.gz
