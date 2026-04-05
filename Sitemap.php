@@ -302,11 +302,11 @@ class Sitemap
 
         if (is_array($location)) {
             $this->addMultiLanguageItem($location, $lastModified, $changeFrequency, $priority);
+            $this->urlsCount += count($location);
         } else {
             $this->addSingleLanguageItem($location, $lastModified, $changeFrequency, $priority);
+            $this->urlsCount++;
         }
-
-        $this->urlsCount++;
 
         if ($this->urlsCount % $this->bufferSize === 0) {
             $this->flush();
