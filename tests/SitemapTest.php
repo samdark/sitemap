@@ -549,11 +549,8 @@ EOF;
     {
         $this->expectException('InvalidArgumentException');
 
-        $fileName = __DIR__ . '/sitemap.xml';
-        $sitemap = new Sitemap($fileName);
+        $sitemap = new Sitemap(__DIR__ . '/sitemap.xml');
         $sitemap->setStylesheet('not-a-valid-url');
-
-        unlink($fileName);
     }
 
     public function testStylesheetInMultipleFiles()

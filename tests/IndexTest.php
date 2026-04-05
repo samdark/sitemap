@@ -58,11 +58,8 @@ class IndexTest extends \PHPUnit\Framework\TestCase
     {
         $this->expectException('InvalidArgumentException');
 
-        $fileName = __DIR__ . '/sitemap_index.xml';
-        $index = new Index($fileName);
+        $index = new Index(__DIR__ . '/sitemap_index.xml');
         $index->setStylesheet('not-a-valid-url');
-
-        unlink($fileName);
     }
 
     public function testWritingFileGzipped()
