@@ -28,6 +28,7 @@ class Sitemap
      */
     private $urlsCount = 0;
 
+
     /**
      * @var integer Maximum allowed number of bytes in a single file.
      */
@@ -41,7 +42,7 @@ class Sitemap
     /**
      * @var string path to the file to be written
      */
-    private $filePath;
+    protected $filePath;
 
     /**
      * @var string path of the XML stylesheet
@@ -51,7 +52,7 @@ class Sitemap
     /**
      * @var integer number of files written
      */
-    private $fileCount = 0;
+    protected $fileCount = 0;
 
     /**
      * @var array path of files written
@@ -434,7 +435,7 @@ class Sitemap
     /**
      * @return string path of currently opened file
      */
-    private function getCurrentFilePath()
+    protected function getCurrentFilePath()
     {
         if ($this->fileCount < 2) {
             return $this->filePath;
