@@ -254,6 +254,10 @@ class Sitemap
             $this->finishFile();
             $this->createNewFile();
             $isNewFileCreated = true;
+
+            // FIX: Count the URLs in the flushed data that will be written to the new file
+            // finishFile() zeroed urlsCount, but $data contains URLs that need to be counted
+            $this->urlsCount = substr_count($data, '<url>');
         }
 
         $this->writerBackend->append($data);

@@ -662,4 +662,89 @@ EOF;
 
         unlink($fileName);
     }
+
+    /**
+     * Test for issue: "Sometime a sitemap contains more than $maxUrls URLs"
+     * https://github.com/samdark/sitemap/issues/[NUMBER]
+     *
+     * This test verifies that when a sitemap file is truncated due to size limits (maxBytes),
+     * the buffered URLs that get written to the new file are properly counted in urlsCount.
+     *
+     * The bug was: when flush() detected size overflow, it called finishFile() (which zeroed urlsCount),
+     * then wrote the buffered data to a new file, but those URLs weren't counted, causing potential
+     * overflow of maxUrls in subsequent operations.
+     */
+    public function testUrlsCountedCorrectlyAfterSizeBasedFileSplit()
+    {
+        $time = 100;
+        $urlLength = 13;
+        $maxUrls = 4;
+        $bufferSize = 3;
+
+        $sitemapPath = __DIR__ . '/sitemap_url_count_test.xml';
+        $sitemap = new Sitemap($sitemapPath);
+        $sitemap->setBufferSize($bufferSize);
+        $sitemap->setMaxUrls($maxUrls);
+
+        // Set maxBytes to allow exactly 4 URLs worth of data minus 1 byte
+        // This will trigger size-based file splitting during write()
+        $sitemap->setMaxBytes(
+            self::HEADER_LENGTH + self::FOOTER_LENGTH +
+            self::ELEMENT_LENGTH_WITHOUT_URL * $maxUrls + $urlLength * $maxUrls - 1
+        );
+
+        // Add 12 URLs - this will trigger multiple size-based splits
+        // The fix ensures that URLs in the buffer when a split occurs are counted
+        for ($i = 0; $i < 12; $i++) {
+            $sitemap->addItem(
+                "https://a.b/{$i}",
+                $time,
+                Sitemap::WEEKLY,
+                1
+            );
+        }
+        $sitemap->write();
+
+        // Collect all generated files
+        $files = glob(__DIR__ . '/sitemap_url_count_test*.xml');
+        sort($files);
+
+        try {
+            // Verify each file doesn't exceed maxUrls
+            foreach ($files as $file) {
+                $this->assertFileExists($file);
+                $this->assertIsValidSitemap($file);
+
+                // Count URLs in the file
+                $xml = new \DOMDocument();
+                $xml->load($file);
+                $urlCount = $xml->getElementsByTagName('url')->length;
+
+                // This is the key assertion: no file should exceed maxUrls
+                $this->assertLessThanOrEqual(
+                    $maxUrls,
+                    $urlCount,
+                    "File " . basename($file) . " contains {$urlCount} URLs, exceeding maxUrls={$maxUrls}. " .
+                    "This indicates buffered URLs weren't counted when size limit triggered file split."
+                );
+            }
+
+            // Verify all 12 URLs were written across all files
+            $totalUrls = 0;
+            foreach ($files as $file) {
+                $xml = new \DOMDocument();
+                $xml->load($file);
+                $totalUrls += $xml->getElementsByTagName('url')->length;
+            }
+            $this->assertEquals(12, $totalUrls, "Expected 12 total URLs across all files");
+
+        } finally {
+            // Cleanup
+            foreach ($files as $file) {
+                if (file_exists($file)) {
+                    unlink($file);
+                }
+            }
+        }
+    }
 }
