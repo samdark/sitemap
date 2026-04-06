@@ -156,6 +156,37 @@ EOF;
         unlink($fileName);
     }
 
+    public function testMultiLanguageSitemapFileSplitting()
+    {
+        // Each multi-language addItem() with 2 languages writes 2 <url> elements.
+        // With maxUrls = 2, the second addItem() (adding 2 more URLs) should trigger a new file.
+        $sitemap = new Sitemap(__DIR__ . '/sitemap_multilang_split.xml', true);
+        $sitemap->setMaxUrls(2);
+
+        $sitemap->addItem(array(
+            'ru' => 'http://example.com/ru/mylink1',
+            'en' => 'http://example.com/en/mylink1',
+        ));
+
+        $sitemap->addItem(array(
+            'ru' => 'http://example.com/ru/mylink2',
+            'en' => 'http://example.com/en/mylink2',
+        ));
+
+        $sitemap->write();
+
+        $expectedFiles = array(
+            __DIR__ . '/sitemap_multilang_split.xml',
+            __DIR__ . '/sitemap_multilang_split_2.xml',
+        );
+
+        foreach ($expectedFiles as $expectedFile) {
+            $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
+            $this->assertIsValidSitemap($expectedFile, true);
+            unlink($expectedFile);
+        }
+    }
+
 
     public function testFrequencyValidation()
     {
