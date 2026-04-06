@@ -240,6 +240,7 @@ class Sitemap
         $isNewFileCreated = false;
         $data = $this->writer->flush(true);
         $dataSize = mb_strlen($data, '8bit');
+        $urlsInData = substr_count($data, '<url>');
 
         /*
          * Limit the file size of each single site map
@@ -258,6 +259,10 @@ class Sitemap
 
         $this->writerBackend->append($data);
         $this->byteCount += $dataSize;
+
+        if ($isNewFileCreated) {
+            $this->urlsCount = $urlsInData;
+        }
 
         return $isNewFileCreated;
     }

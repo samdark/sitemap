@@ -322,6 +322,42 @@ EOF;
         $this->assertContains('http://example.com/sitemap_multi_3.xml', $urls);
     }
 
+    public function testMaxUrlsRespectedAfterSizeBasedSplit()
+    {
+        $urlLength = 13;
+
+        $sitemap = new Sitemap(__DIR__ . '/sitemap_max_urls_size_split.xml');
+        $sitemap->setBufferSize(1);
+        $sitemap->setMaxUrls(3);
+        $sitemap->setMaxBytes(
+            self::HEADER_LENGTH + self::FOOTER_LENGTH + self::ELEMENT_LENGTH_WITHOUT_URL * 2 + $urlLength * 2
+        );
+
+        for ($i = 0; $i < 6; $i++) {
+            $sitemap->addItem(
+                "https://a.b/{$i}",
+                100,
+                Sitemap::WEEKLY,
+                1
+            );
+        }
+        $sitemap->write();
+
+        $writtenFiles = $sitemap->getWrittenFilePath();
+        $this->assertCount(3, $writtenFiles);
+
+        foreach ($writtenFiles as $filePath) {
+            $this->assertFileExists($filePath);
+            $this->assertIsValidSitemap($filePath);
+            $this->assertLessThanOrEqual(
+                3,
+                substr_count(file_get_contents($filePath), '<url>'),
+                "$filePath contains more than the allowed number of URLs"
+            );
+            unlink($filePath);
+        }
+    }
+
     public function testSmallSizeLimit()
     {
         $fileName = __DIR__ . '/sitemap_regular.xml';
