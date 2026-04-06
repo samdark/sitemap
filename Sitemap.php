@@ -289,7 +289,9 @@ class Sitemap
      */
     public function addItem($location, $lastModified = null, $changeFrequency = null, $priority = null)
     {
-        if ($this->urlsCount >= $this->maxUrls && $this->writer !== null) {
+        $delta = is_array($location) ? count($location) : 1;
+
+        if (($this->urlsCount + $delta) > $this->maxUrls && $this->writer !== null) {
             $isNewFileCreated = $this->flush();
             if (!$isNewFileCreated) {
                 $this->finishFile();
@@ -302,13 +304,14 @@ class Sitemap
 
         if (is_array($location)) {
             $this->addMultiLanguageItem($location, $lastModified, $changeFrequency, $priority);
-            $this->urlsCount += count($location);
         } else {
             $this->addSingleLanguageItem($location, $lastModified, $changeFrequency, $priority);
-            $this->urlsCount++;
         }
 
-        if ($this->urlsCount % $this->bufferSize === 0) {
+        $prevCount = $this->urlsCount;
+        $this->urlsCount += $delta;
+
+        if (intdiv($prevCount, $this->bufferSize) !== intdiv($this->urlsCount, $this->bufferSize)) {
             $this->flush();
         }
     }
