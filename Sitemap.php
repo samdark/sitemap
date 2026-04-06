@@ -311,7 +311,10 @@ class Sitemap
         $prevCount = $this->urlsCount;
         $this->urlsCount += $delta;
 
-        if (intdiv($prevCount, $this->bufferSize) !== intdiv($this->urlsCount, $this->bufferSize)) {
+        if (
+            $this->bufferSize > 0
+            && (int) ($prevCount / $this->bufferSize) !== (int) ($this->urlsCount / $this->bufferSize)
+        ) {
             $this->flush();
         }
     }
