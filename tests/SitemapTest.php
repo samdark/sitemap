@@ -558,6 +558,36 @@ EOF;
         }
     }
 
+    public function testGetCurrentFilePathIsOverridable()
+    {
+        $customSitemap = new class(__DIR__ . '/sitemap_custom.xml') extends Sitemap {
+            protected function buildCurrentFilePath($filePath, $fileCount)
+            {
+                if ($fileCount < 2) {
+                    return $filePath;
+                }
+                $parts = pathinfo($filePath);
+                return $parts['dirname'] . DIRECTORY_SEPARATOR . $parts['filename'] . '-' . $fileCount . '.' . $parts['extension'];
+            }
+        };
+        $customSitemap->setMaxUrls(2);
+
+        for ($i = 0; $i < 4; $i++) {
+            $customSitemap->addItem('http://example.com/mylink' . $i);
+        }
+        $customSitemap->write();
+
+        $expectedFiles = array(
+            __DIR__ . '/sitemap_custom.xml',
+            __DIR__ . '/sitemap_custom-2.xml',
+        );
+        foreach ($expectedFiles as $expectedFile) {
+            $this->assertFileExists($expectedFile);
+            $this->assertIsValidSitemap($expectedFile);
+            unlink($expectedFile);
+        }
+    }
+
     public function testStylesheetIsIncludedInOutput()
     {
         $fileName = __DIR__ . '/sitemap_stylesheet.xml';

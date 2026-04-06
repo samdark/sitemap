@@ -442,11 +442,23 @@ class Sitemap
      */
     private function getCurrentFilePath()
     {
-        if ($this->fileCount < 2) {
-            return $this->filePath;
+        return $this->buildCurrentFilePath($this->filePath, $this->fileCount);
+    }
+
+    /**
+     * Hook for customizing the path of the currently opened file.
+     *
+     * @param string $filePath base file path
+     * @param integer $fileCount number of files written
+     * @return string path of currently opened file
+     */
+    protected function buildCurrentFilePath($filePath, $fileCount)
+    {
+        if ($fileCount < 2) {
+            return $filePath;
         }
 
-        $parts = pathinfo($this->filePath);
+        $parts = pathinfo($filePath);
         if ($parts['extension'] === 'gz') {
             $filenameParts = pathinfo($parts['filename']);
             if (!empty($filenameParts['extension'])) {
@@ -454,7 +466,7 @@ class Sitemap
                 $parts['extension'] = $filenameParts['extension'] . '.gz';
             }
         }
-        return $parts['dirname'] . DIRECTORY_SEPARATOR . $parts['filename'] . '_' . $this->fileCount . '.' . $parts['extension'];
+        return $parts['dirname'] . DIRECTORY_SEPARATOR . $parts['filename'] . '_' . $fileCount . '.' . $parts['extension'];
     }
 
     /**
