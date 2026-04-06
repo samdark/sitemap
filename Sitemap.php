@@ -29,6 +29,11 @@ class Sitemap
     private $urlsCount = 0;
 
     /**
+     * @var integer number of URLs currently buffered in memory (since last flush)
+     */
+    private $bufferUrlsCount = 0;
+
+    /**
      * @var integer Maximum allowed number of bytes in a single file.
      */
     private $maxBytes = 10485760;
@@ -240,7 +245,7 @@ class Sitemap
         $isNewFileCreated = false;
         $data = $this->writer->flush(true);
         $dataSize = mb_strlen($data, '8bit');
-        $urlsInData = substr_count($data, '<url>');
+        $bufferUrlsCount = $this->bufferUrlsCount;
 
         /*
          * Limit the file size of each single site map
@@ -259,9 +264,10 @@ class Sitemap
 
         $this->writerBackend->append($data);
         $this->byteCount += $dataSize;
+        $this->bufferUrlsCount = 0;
 
         if ($isNewFileCreated) {
-            $this->urlsCount = $urlsInData;
+            $this->urlsCount = $bufferUrlsCount;
         }
 
         return $isNewFileCreated;
@@ -312,6 +318,7 @@ class Sitemap
         }
 
         $this->urlsCount++;
+        $this->bufferUrlsCount++;
 
         if ($this->urlsCount % $this->bufferSize === 0) {
             $this->flush();
