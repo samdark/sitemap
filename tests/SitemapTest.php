@@ -530,13 +530,13 @@ EOF;
     public function testGetCurrentFilePathIsOverridable()
     {
         $customSitemap = new class(__DIR__ . '/sitemap_custom.xml') extends Sitemap {
-            protected function getCurrentFilePath()
+            protected function buildCurrentFilePath($filePath, $fileCount)
             {
-                if ($this->fileCount < 2) {
-                    return $this->filePath;
+                if ($fileCount < 2) {
+                    return $filePath;
                 }
-                $parts = pathinfo($this->filePath);
-                return $parts['dirname'] . DIRECTORY_SEPARATOR . $parts['filename'] . '-' . $this->fileCount . '.' . $parts['extension'];
+                $parts = pathinfo($filePath);
+                return $parts['dirname'] . DIRECTORY_SEPARATOR . $parts['filename'] . '-' . $fileCount . '.' . $parts['extension'];
             }
         };
         $customSitemap->setMaxUrls(2);
@@ -546,10 +546,10 @@ EOF;
         }
         $customSitemap->write();
 
-        $expectedFiles = [
+        $expectedFiles = array(
             __DIR__ . '/sitemap_custom.xml',
             __DIR__ . '/sitemap_custom-2.xml',
-        ];
+        );
         foreach ($expectedFiles as $expectedFile) {
             $this->assertFileExists($expectedFile);
             $this->assertIsValidSitemap($expectedFile);
