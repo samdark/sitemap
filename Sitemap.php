@@ -301,6 +301,14 @@ class Sitemap
             $encoded .= $parsed['scheme'] . '://';
         }
 
+        // User info
+        if (isset($parsed['user'])) {
+            $encoded .= $parsed['user'];
+            if (isset($parsed['pass'])) {
+                $encoded .= ':' . $parsed['pass'];
+            }
+            $encoded .= '@';
+        }
         // Host (domain)
         if (isset($parsed['host'])) {
             // For international domain names (IDN), we should use idn_to_ascii
