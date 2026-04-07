@@ -10,6 +10,7 @@ use XMLWriter;
  */
 class Sitemap
 {
+    use UrlEncoderTrait;
     const ALWAYS = 'always';
     const HOURLY = 'hourly';
     const DAILY = 'daily';
@@ -275,139 +276,6 @@ class Sitemap
                 "The location must be a valid URL. You have specified: {$location}."
             );
         }
-    }
-
-    /**
-     * Encodes a URL to ensure international characters are properly percent-encoded
-     * according to RFC 3986 while avoiding double-encoding
-     *
-     * @param string $url the URL to encode
-     * @return string the encoded URL
-     */
-    protected function encodeUrl($url)
-    {
-        // Parse the URL into components
-        $parsed = parse_url($url);
-
-        if ($parsed === false) {
-            // If parse_url fails, return the original URL
-            return $url;
-        }
-
-        $encoded = '';
-
-        // Scheme (http, https, etc.)
-        if (isset($parsed['scheme'])) {
-            $encoded .= $parsed['scheme'] . '://';
-        }
-
-        // User info
-        if (isset($parsed['user'])) {
-            $encoded .= $parsed['user'];
-            if (isset($parsed['pass'])) {
-                $encoded .= ':' . $parsed['pass'];
-            }
-            $encoded .= '@';
-        }
-        // Host (domain)
-        if (isset($parsed['host'])) {
-            // For international domain names (IDN), we should use idn_to_ascii
-            // However, if it's already ASCII, idn_to_ascii will return it as-is
-            if (function_exists('idn_to_ascii')) {
-                // Use INTL_IDNA_VARIANT_UTS46 if available (PHP 7.2+), otherwise use default
-                $host = defined('INTL_IDNA_VARIANT_UTS46')
-                    ? idn_to_ascii($parsed['host'], IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46)
-                    : idn_to_ascii($parsed['host']);
-                $encoded .= $host !== false ? $host : $parsed['host'];
-            } else {
-                $encoded .= $parsed['host'];
-            }
-        }
-
-        // Port
-        if (isset($parsed['port'])) {
-            $encoded .= ':' . $parsed['port'];
-        }
-
-        // Path
-        if (isset($parsed['path'])) {
-            // Split path into segments to encode each segment separately
-            $pathSegments = explode('/', $parsed['path']);
-            $encodedSegments = array();
-
-            foreach ($pathSegments as $segment) {
-                if ($segment === '') {
-                    $encodedSegments[] = '';
-                } else {
-                    // Only encode if the segment contains non-ASCII characters
-                    // Check if segment has any non-ASCII characters
-                    if (preg_match('/[^\x20-\x7E]/', $segment)) {
-                        // Has non-ASCII, needs encoding
-                        $encodedSegments[] = rawurlencode($segment);
-                    } else {
-                        // Already ASCII, check if it's already percent-encoded
-                        $decoded = rawurldecode($segment);
-                        if ($decoded !== $segment) {
-                            // It was already encoded, keep it as-is
-                            $encodedSegments[] = $segment;
-                        } else {
-                            // Not encoded, but is ASCII, keep as-is
-                            $encodedSegments[] = $segment;
-                        }
-                    }
-                }
-            }
-            $encoded .= implode('/', $encodedSegments);
-        }
-
-        // Query string - just check for non-ASCII characters
-        if (isset($parsed['query'])) {
-            $query = $parsed['query'];
-            // Only encode non-ASCII characters in the query string
-            if (preg_match('/[^\x20-\x7E]/', $query)) {
-                // Has non-ASCII characters, encode them while preserving structure
-                // Split by & to process each parameter
-                $parts = explode('&', $query);
-                $encodedParts = array();
-                foreach ($parts as $part) {
-                    if (strpos($part, '=') !== false) {
-                        list($key, $value) = explode('=', $part, 2);
-                        // Only encode if there are non-ASCII characters
-                        if (preg_match('/[^\x20-\x7E]/', $key)) {
-                            $key = rawurlencode($key);
-                        }
-                        if (preg_match('/[^\x20-\x7E]/', $value)) {
-                            $value = rawurlencode($value);
-                        }
-                        $encodedParts[] = $key . '=' . $value;
-                    } else {
-                        // No = sign, just encode if needed
-                        if (preg_match('/[^\x20-\x7E]/', $part)) {
-                            $encodedParts[] = rawurlencode($part);
-                        } else {
-                            $encodedParts[] = $part;
-                        }
-                    }
-                }
-                $encoded .= '?' . implode('&', $encodedParts);
-            } else {
-                // No non-ASCII, keep as-is
-                $encoded .= '?' . $query;
-            }
-        }
-
-        // Fragment
-        if (isset($parsed['fragment'])) {
-            $fragment = $parsed['fragment'];
-            // Only encode if there are non-ASCII characters
-            if (preg_match('/[^\x20-\x7E]/', $fragment)) {
-                $encoded .= '#' . rawurlencode($fragment);
-            } else {
-                $encoded .= '#' . $fragment;
-            }
-        }
-
-        return $encoded;
     }
 
     /**
