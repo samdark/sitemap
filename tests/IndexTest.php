@@ -77,4 +77,66 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         $this->assertIsValidIndex('compress.zlib://' . $fileName);
         unlink($fileName);
     }
+
+    public function testAutoDetectLastModified()
+    {
+        // Create a test sitemap file
+        $sitemapFile = __DIR__ . '/test_sitemap_for_autodetect.xml';
+        file_put_contents($sitemapFile, '<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>');
+
+        // Get the file modification time
+        $expectedTime = filemtime($sitemapFile);
+
+        // Create index and add sitemap with auto-detection
+        $indexFile = __DIR__ . '/sitemap_index_autodetect.xml';
+        $index = new Index($indexFile);
+        $index->addSitemap('http://example.com/test_sitemap.xml', null, $sitemapFile);
+        $index->write();
+
+        // Read the generated index file
+        $content = file_get_contents($indexFile);
+
+        // Check that lastmod element exists
+        $this->assertStringContainsString('<lastmod>', $content);
+
+        // Parse and validate the date
+        $xml = new \DOMDocument();
+        $xml->load($indexFile);
+        $lastmodNodes = $xml->getElementsByTagName('lastmod');
+        $this->assertEquals(1, $lastmodNodes->length);
+
+        $lastmodValue = $lastmodNodes->item(0)->nodeValue;
+        $parsedTime = strtotime($lastmodValue);
+
+        // The times should match (within a 2 second tolerance for filesystem differences)
+        $this->assertEqualsWithDelta($expectedTime, $parsedTime, 2);
+
+        // Validate the index
+        $this->assertIsValidIndex($indexFile);
+
+        // Cleanup
+        unlink($sitemapFile);
+        unlink($indexFile);
+    }
+
+    public function testAutoDetectLastModifiedWithNonExistentFile()
+    {
+        // Test that if file doesn't exist, no lastmod is added
+        $indexFile = __DIR__ . '/sitemap_index_nofile.xml';
+        $index = new Index($indexFile);
+        $index->addSitemap('http://example.com/test_sitemap.xml', null, '/nonexistent/file.xml');
+        $index->write();
+
+        // Read the generated index file
+        $content = file_get_contents($indexFile);
+
+        // Check that lastmod element does NOT exist
+        $this->assertStringNotContainsString('<lastmod>', $content);
+
+        // Validate the index
+        $this->assertIsValidIndex($indexFile);
+
+        // Cleanup
+        unlink($indexFile);
+    }
 }

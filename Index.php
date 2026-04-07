@@ -60,15 +60,23 @@ class Index
      * Adds sitemap link to the index file
      *
      * @param string $location URL of the sitemap
-     * @param integer $lastModified unix timestamp of sitemap modification time
+     * @param integer $lastModified unix timestamp of sitemap modification time. If null and $filePath is provided, will be auto-detected from file.
+     * @param string $filePath optional file path for auto-detecting last modified time
      * @throws \InvalidArgumentException
      */
-    public function addSitemap($location, $lastModified = null)
+    public function addSitemap($location, $lastModified = null, $filePath = null)
     {
         if (false === filter_var($location, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException(
                 "The location must be a valid URL. You have specified: {$location}."
             );
+        }
+
+        // Auto-detect last modified time from file if not provided
+        if ($lastModified === null && $filePath !== null) {
+            if (file_exists($filePath)) {
+                $lastModified = filemtime($filePath);
+            }
         }
 
         if ($this->writer === null) {

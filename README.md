@@ -94,6 +94,29 @@ foreach ($staticSitemapUrls as $sitemapUrl) {
 $index->write();
 ```
 
+### Auto-detecting last modified date
+
+If you want the sitemap index to include the last modified date for each sitemap, you can either:
+
+1. Manually provide the timestamp:
+```php
+$index->addSitemap('http://example.com/sitemap.xml', time());
+```
+
+2. Let it auto-detect from the file (if you have the file path):
+```php
+// Get file paths of written sitemaps
+$sitemapFiles = $sitemap->getWrittenFilePath();
+
+// Add to index with auto-detection
+foreach ($sitemapFiles as $filePath) {
+    $url = 'http://example.com/' . basename($filePath);
+    $index->addSitemap($url, null, $filePath);  // Will auto-detect modification time
+}
+```
+
+The third parameter (`$filePath`) enables automatic detection of the last modified time from the actual file on disk.
+
 Multi-language sitemap
 ----------------------
 
