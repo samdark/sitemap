@@ -58,7 +58,7 @@ trait UrlEncoderTrait
 
         // Path — encode only non-ASCII bytes; existing %HH sequences are ASCII and are preserved
         if (isset($parsed['path'])) {
-            $encoded .= $this->encodeNonAscii($parsed['path'], true);
+            $encoded .= $this->encodeNonAscii($parsed['path']);
         }
 
         // Query string — encode only non-ASCII bytes in each key and value
@@ -89,10 +89,9 @@ trait UrlEncoderTrait
      * all ASCII characters (including existing %HH sequences) untouched.
      *
      * @param string $value the string to encode
-     * @param bool $allowSlash when true, forward slashes are left as-is (for path encoding)
      * @return string
      */
-    private function encodeNonAscii($value, $allowSlash = false)
+    private function encodeNonAscii($value)
     {
         return preg_replace_callback(
             '/[^\x00-\x7F]+/',
