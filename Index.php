@@ -10,6 +10,7 @@ use XMLWriter;
  */
 class Index
 {
+    use UrlEncoderTrait;
     /**
      * @var XMLWriter
      */
@@ -65,6 +66,9 @@ class Index
      */
     public function addSitemap($location, $lastModified = null)
     {
+        // Encode the URL to handle international characters
+        $location = $this->encodeUrl($location);
+
         if (false === filter_var($location, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException(
                 "The location must be a valid URL. You have specified: {$location}."

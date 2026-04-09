@@ -77,4 +77,46 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         $this->assertIsValidIndex('compress.zlib://' . $fileName);
         unlink($fileName);
     }
+
+    public function testInternationalUrlEncoding()
+    {
+        $fileName = __DIR__ . '/sitemap_index_international.xml';
+        $index = new Index($fileName);
+
+        // Arabic characters in path
+        $index->addSitemap('http://example.com/ar/العامل-الماهر/sitemap.xml');
+
+        // Already encoded URL should not be double-encoded
+        $index->addSitemap('http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84/sitemap.xml');
+
+        // Query string with non-ASCII characters
+        $index->addSitemap('http://example.com/sitemap.xml?lang=中文');
+
+        $index->write();
+
+        $this->assertFileExists($fileName);
+        $content = file_get_contents($fileName);
+
+        // Arabic text should be percent-encoded
+        $this->assertStringContainsString(
+            'http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84-%D8%A7%D9%84%D9%85%D8%A7%D9%87%D8%B1/sitemap.xml',
+            $content
+        );
+
+        // Already encoded URL should remain the same (no double-encoding)
+        $this->assertStringContainsString(
+            'http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84/sitemap.xml',
+            $content
+        );
+        $this->assertStringNotContainsString('%25D8', $content);
+
+        // Chinese query value should be percent-encoded
+        $this->assertStringContainsString(
+            'http://example.com/sitemap.xml?lang=%E4%B8%AD%E6%96%87',
+            $content
+        );
+
+        $this->assertIsValidIndex($fileName);
+        unlink($fileName);
+    }
 }

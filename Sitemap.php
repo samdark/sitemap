@@ -10,6 +10,7 @@ use XMLWriter;
  */
 class Sitemap
 {
+    use UrlEncoderTrait;
     const ALWAYS = 'always';
     const HOURLY = 'hourly';
     const DAILY = 'daily';
@@ -276,7 +277,7 @@ class Sitemap
             );
         }
     }
-    
+
     /**
      * Adds a new item to sitemap
      *
@@ -334,6 +335,9 @@ class Sitemap
      */
     private function addSingleLanguageItem($location, $lastModified, $changeFrequency, $priority)
     {
+        // Encode the URL to handle international characters
+        $location = $this->encodeUrl($location);
+
         $this->validateLocation($location);
 
 
@@ -383,9 +387,15 @@ class Sitemap
      */
     private function addMultiLanguageItem($locations, $lastModified, $changeFrequency, $priority)
     {
+        // Encode all URLs first
+        $encodedLocations = array();
         foreach ($locations as $language => $url) {
-            $this->validateLocation($url);
+            $encodedUrl = $this->encodeUrl($url);
+            $this->validateLocation($encodedUrl);
+            $encodedLocations[$language] = $encodedUrl;
+        }
 
+        foreach ($encodedLocations as $language => $url) {
             $this->writer->startElement('url');
 
             $this->writer->writeElement('loc', $url);
@@ -415,7 +425,7 @@ class Sitemap
                 $this->writer->writeElement('priority', number_format($priority, 1, '.', ','));
             }
 
-            foreach ($locations as $hreflang => $href) {
+            foreach ($encodedLocations as $hreflang => $href) {
 
                 $this->writer->startElement('xhtml:link');
                 $this->writer->startAttribute('rel');

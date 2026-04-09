@@ -662,4 +662,43 @@ EOF;
 
         unlink($fileName);
     }
+
+    public function testInternationalUrlEncoding()
+    {
+        $fileName = __DIR__ . '/sitemap_international.xml';
+        $sitemap = new Sitemap($fileName);
+
+        // Test with Arabic characters in URL path
+        $sitemap->addItem('http://example.com/ar/العامل-الماهر-كاريكاتير');
+
+        // Test with Chinese characters
+        $sitemap->addItem('http://example.com/zh/测试页面');
+
+        // Test with already encoded URL (should not double-encode)
+        $sitemap->addItem('http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84');
+
+        // Test with query string containing non-ASCII
+        $sitemap->addItem('http://example.com/search?q=café');
+
+        $sitemap->write();
+
+        $this->assertFileExists($fileName);
+
+        $content = file_get_contents($fileName);
+
+        // Arabic text should be percent-encoded
+        $this->assertStringContainsString('http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84-%D8%A7%D9%84%D9%85%D8%A7%D9%87%D8%B1-%D9%83%D8%A7%D8%B1%D9%8A%D9%83%D8%A7%D8%AA%D9%8A%D8%B1', $content);
+
+        // Chinese text should be percent-encoded
+        $this->assertStringContainsString('http://example.com/zh/%E6%B5%8B%E8%AF%95%E9%A1%B5%E9%9D%A2', $content);
+
+        // Already encoded URL should remain the same (not double-encoded)
+        $this->assertStringContainsString('http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84', $content);
+
+        // Query string should be encoded
+        $this->assertStringContainsString('http://example.com/search?q=caf%C3%A9', $content);
+
+        $this->assertIsValidSitemap($fileName);
+        unlink($fileName);
+    }
 }
