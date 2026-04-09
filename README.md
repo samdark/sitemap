@@ -4,7 +4,7 @@ Sitemap
 XML Sitemap and XML Sitemap Index builder.
 
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/samdark/sitemap?sort=semver&style=flat-square)
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/samdark/sitemap/GitHub%20Action/master?label=tests&style=flat-square)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/samdark/sitemap/php.yml?label=tests&style=flat-square)
 ![Packagist PHP Version Support](https://img.shields.io/packagist/php-v/samdark/sitemap?style=flat-square)
 ![Packagist Downloads](https://img.shields.io/packagist/dm/samdark/sitemap?style=flat-square)
 ![Packagist Downloads](https://img.shields.io/packagist/dt/samdark/sitemap?style=flat-square&label=total%20downloads)
