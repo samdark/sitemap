@@ -41,10 +41,8 @@ trait UrlEncoderTrait
 
         // Host (domain)
         if (isset($parsed['host'])) {
-            if (function_exists('idn_to_ascii')) {
-                $host = defined('INTL_IDNA_VARIANT_UTS46')
-                    ? idn_to_ascii($parsed['host'], IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46)
-                    : idn_to_ascii($parsed['host']);
+            if (function_exists('idn_to_ascii') && defined('INTL_IDNA_VARIANT_UTS46')) {
+                $host = idn_to_ascii($parsed['host'], IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
                 $encoded .= $host !== false ? $host : $parsed['host'];
             } else {
                 $encoded .= $parsed['host'];

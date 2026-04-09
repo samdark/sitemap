@@ -698,6 +698,7 @@ EOF;
         // Query string should be encoded
         $this->assertStringContainsString('http://example.com/search?q=caf%C3%A9', $content);
 
+        $this->assertIsValidSitemap($fileName);
         unlink($fileName);
     }
 }
