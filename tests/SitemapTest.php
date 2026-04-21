@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 use RuntimeException;
+use samdark\sitemap\Image;
 use samdark\sitemap\Sitemap;
 
 class SitemapTest extends TestCase
@@ -22,7 +23,7 @@ class SitemapTest extends TestCase
      */
     protected function assertIsValidSitemap(string $fileName, bool $xhtml = false): void
     {
-        $xsdFileName = $xhtml ? 'sitemap_xhtml.xsd' : 'sitemap.xsd';
+        $xsdFileName = $xhtml ? 'sitemap_xhtml.xsd' : 'sitemap_xml.xsd';
 
         $xml = new DOMDocument();
         $xml->load($fileName);
@@ -62,9 +63,13 @@ class SitemapTest extends TestCase
         $fileName = __DIR__ . '/sitemap_regular.xml';
         $sitemap = new Sitemap($fileName);
 
-        $sitemap->addItem('http://example.com/test.html&q=name', (new \DateTime('2021-01-11 01:01'))->format('U'));
+        $images = [
+            new Image('https://example.com/picture1.jpg', 'The caption', 'Vienna, Austria', 'The title', 'https://example.com/images.txt'),
+            new Image('https://example.com/picture2.jpg')
+        ];
+        $sitemap->addItem('http://example.com/test.html&q=name', (new \DateTime('2021-01-11 01:01'))->format('U'), null, null, $images);
         $sitemap->addItem('http://example.com/mylink?foo=bar', (new \DateTime('2021-01-02 03:04'))->format('U'), Sitemap::HOURLY);
-        
+
         $sitemap->addItem('http://example.com/mylink4', (new \DateTime('2021-01-02 03:04'))->format('U'), Sitemap::DAILY, 0.3);
 
         $sitemap->write();
@@ -73,10 +78,20 @@ class SitemapTest extends TestCase
 
         $expected = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
  <url>
   <loc>http://example.com/test.html&amp;q=name</loc>
   <lastmod>2021-01-11T01:01:00+00:00</lastmod>
+  <image:image>
+   <image:loc>https://example.com/picture1.jpg</image:loc>
+   <image:caption>The caption</image:caption>
+   <image:geo_location>Vienna, Austria</image:geo_location>
+   <image:title>The title</image:title>
+   <image:license>https://example.com/images.txt</image:license>
+  </image:image>
+  <image:image>
+   <image:loc>https://example.com/picture2.jpg</image:loc>
+  </image:image>
  </url>
  <url>
   <loc>http://example.com/mylink?foo=bar</loc>
@@ -133,12 +148,15 @@ EOF;
         $this->assertContains('http://example.com/sitemap_multi_10.xml', $urls);
     }
 
-
-    public function testMultiLanguageSitemap(): void
+    public function testMultiLanguageSitemapWithImages(): void
     {
         $fileName = __DIR__ . '/sitemap_multi_language.xml';
         $sitemap = new Sitemap($fileName, true);
-        $sitemap->addItem('http://example.com/mylink1');
+
+        $images = [
+            new Image('https://example.com/picture1.jpg'), new Image('https://example.com/picture2.jpg')
+        ];
+        $sitemap->addItem('http://example.com/mylink1', null, null, null, $images);
 
         $sitemap->addItem([
             'ru' => 'http://example.com/ru/mylink2',
@@ -531,7 +549,7 @@ EOF;
         $this->assertFileExists($fileName);
         $content = trim(file_get_contents($fileName));
         $expected = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
-            . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n"
+            . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n"
             . '<url><loc>http://example.com/mylink1</loc>'
             . '<lastmod>1970-01-01T00:01:40+00:00</lastmod>'
             . '<changefreq>daily</changefreq>'
@@ -617,7 +635,7 @@ EOF;
         ];
         $expected[] = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
  <url>
   <loc>https://a.b/0</loc>
   <lastmod>1970-01-01T00:01:40+00:00</lastmod>
@@ -640,7 +658,7 @@ EOF;
 EOF;
         $expected[] = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
  <url>
   <loc>https://a.b/3</loc>
   <lastmod>1970-01-01T00:01:40+00:00</lastmod>
@@ -693,7 +711,7 @@ EOF;
         ];
         $expected[] = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
  <url>
   <loc>https://a.b/0</loc>
   <lastmod>1970-01-01T00:01:40+00:00</lastmod>
@@ -716,7 +734,7 @@ EOF;
 EOF;
         $expected[] = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
  <url>
   <loc>https://a.b/3</loc>
   <lastmod>1970-01-01T00:01:40+00:00</lastmod>
