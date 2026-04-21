@@ -4,15 +4,13 @@
             targetNamespace="http://symfony.com/schema"
             elementFormDefault="qualified">
     <!--
-        The Sitemap schema does not include the link or image elements that are
-        utilized by Google for multi-language or images in Sitemaps. Hence, we
-        need to combine the three schemas for automated validation in a
-        dedicated XSD.
+        The Sitemap schema does not include the image element that is
+        utilized by Google for images in Sitemaps. Hence, we need
+        to combine the two schemas for automated validation in a dedicated
+        XSD.
     -->
     <xsd:import namespace="http://www.sitemaps.org/schemas/sitemap/0.9"
                 schemaLocation="sitemap.xsd"/>
-    <xsd:import namespace="http://www.w3.org/1999/xhtml"
-                schemaLocation="xhtml1-strict.xsd"/>
     <xsd:import namespace="http://www.google.com/schemas/sitemap-image/1.1"
                 schemaLocation="sitemap-image.xsd"/>
 </xsd:schema>

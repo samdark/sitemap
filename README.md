@@ -42,6 +42,7 @@ $sitemap->addItem('http://example.com/mylink1');
 $sitemap->addItem('http://example.com/mylink2', time());
 $sitemap->addItem('http://example.com/mylink3', time(), Sitemap::HOURLY);
 $sitemap->addItem('http://example.com/mylink4', time(), Sitemap::DAILY, 0.3);
+$sitemap->addItem('http://example.com/mylink5', time(), Sitemap::WEEKLY, 1, ['http://example.com/images/1.jpg', 'http://example.com/images/2.jpg']);
 
 // Set sitemap stylesheet. See example-sitemap-stylesheet.xsl.
 $sitemap->setStylesheet('http://example.com/css/sitemap.xsl');
