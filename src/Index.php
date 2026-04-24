@@ -103,6 +103,10 @@ class Index
      */
     public function write(): void
     {
+        if ($this->writer === null) {
+            return;
+        }
+
         $this->writer->endElement();
         $this->writer->endDocument();
         $filePath = $this->getFilePath();

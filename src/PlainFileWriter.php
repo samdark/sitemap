@@ -19,6 +19,10 @@ class PlainFileWriter implements WriterInterface
      */
     public function __construct(string $filename)
     {
+        if (is_dir($filename)) {
+            throw new RuntimeException("Unable to open file \"$filename\".");
+        }
+
         $file = fopen($filename, 'ab');
         if ($file === false) {
             // @codeCoverageIgnoreStart
@@ -31,9 +35,7 @@ class PlainFileWriter implements WriterInterface
     public function append(string $data): void
     {
         if ($this->file === null) {
-            // @codeCoverageIgnoreStart
             return;
-            // @codeCoverageIgnoreEnd
         }
 
         fwrite($this->file, $data);
@@ -42,9 +44,7 @@ class PlainFileWriter implements WriterInterface
     public function finish(): void
     {
         if ($this->file === null) {
-            // @codeCoverageIgnoreStart
             return;
-            // @codeCoverageIgnoreEnd
         }
 
         fclose($this->file);

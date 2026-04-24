@@ -27,6 +27,15 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         unlink($fileName);
     }
 
+    public function testWritingEmptyIndexDoesNothing(): void
+    {
+        $fileName = __DIR__ . '/sitemap_index_empty.xml';
+        $index = new Index($fileName);
+        $index->write();
+
+        $this->assertFileDoesNotExist($fileName);
+    }
+
     public function testLocationValidation(): void
     {
         $this->expectException('InvalidArgumentException');

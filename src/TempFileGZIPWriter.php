@@ -2,7 +2,6 @@
 
 namespace samdark\sitemap;
 
-// @codeCoverageIgnoreStart
 use RuntimeException;
 
 /**
@@ -30,7 +29,9 @@ class TempFileGZIPWriter implements WriterInterface
         $this->filename = $filename;
         $tempFile = fopen('php://temp/', 'wb');
         if ($tempFile === false) {
+            // @codeCoverageIgnoreStart
             throw new RuntimeException('Unable to open temp file.');
+            // @codeCoverageIgnoreEnd
         }
         $this->tempFile = $tempFile;
     }
@@ -56,9 +57,15 @@ class TempFileGZIPWriter implements WriterInterface
             return;
         }
 
+        if (is_dir($this->filename)) {
+            throw new RuntimeException("Unable to open compress.zlib stream for \"$this->filename\".");
+        }
+
         $file = fopen('compress.zlib://' . $this->filename, 'wb');
         if ($file === false) {
+            // @codeCoverageIgnoreStart
             throw new RuntimeException("Unable to open compress.zlib stream for \"$this->filename\".");
+            // @codeCoverageIgnoreEnd
         }
 
         rewind($this->tempFile);
@@ -69,4 +76,3 @@ class TempFileGZIPWriter implements WriterInterface
         $this->tempFile = null;
     }
 }
-// @codeCoverageIgnoreEnd

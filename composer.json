@@ -22,7 +22,8 @@
         "ext-xmlwriter": "*"
     },
     "suggest": {
-        "ext-zlib": "For gzipped sitemaps"
+        "ext-zlib": "For gzipped sitemaps",
+        "ext-intl": "For encoding international domain names"
     },
     "scripts": {
        "test" : "@php vendor/bin/phpunit tests",

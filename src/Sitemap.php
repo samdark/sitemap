@@ -316,23 +316,11 @@ class Sitemap
      */
     protected function validateLocation(string $location): void
     {
-        if (!$this->isValidAsciiHttpLocation($location) && false === filter_var($location, FILTER_VALIDATE_URL)) {
+        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
             throw new InvalidArgumentException(
                 "The location must be a valid URL. You have specified: $location."
             );
         }
-    }
-
-    /**
-     * @param string $location
-     * @return bool
-     */
-    private function isValidAsciiHttpLocation(string $location): bool
-    {
-        return preg_match(
-            '~^https?://[A-Za-z\d](?:[A-Za-z\d.-]*[A-Za-z\d])?(?::\d+)?(?:/\S*)?(?:\?[^\s#]*)?(?:#\S*)?$~',
-            $location
-        ) === 1;
     }
 
     /**
@@ -349,9 +337,7 @@ class Sitemap
     {
         $isMultiLanguage = is_array($locations);
         $delta = $isMultiLanguage ? count($locations) : 1;
-        if ($lastModified !== null) {
-            $lastModified = date('c', $lastModified);
-        }
+        $formattedLastModified = $lastModified !== null ? date('c', $lastModified) : null;
         if ($changeFrequency !== null) {
             $this->validateChangeFrequency($changeFrequency);
         }
@@ -371,9 +357,9 @@ class Sitemap
         }
 
         if ($isMultiLanguage) {
-            $this->addMultiLanguageItem($locations, $lastModified, $changeFrequency, $priority);
+            $this->addMultiLanguageItem($locations, $formattedLastModified, $changeFrequency, $priority);
         } else {
-            $this->addSingleLanguageItem($locations, $lastModified, $changeFrequency, $priority);
+            $this->addSingleLanguageItem($locations, $formattedLastModified, $changeFrequency, $priority);
         }
 
         $prevCount = $this->urlsCount;

@@ -31,6 +31,10 @@ class DeflateWriter implements WriterInterface
             // @codeCoverageIgnoreEnd
         }
 
+        if (is_dir($filename)) {
+            throw new RuntimeException("Unable to open \"$filename\".");
+        }
+
         $file = fopen($filename, 'ab');
         if ($file === false) {
             // @codeCoverageIgnoreStart
@@ -57,9 +61,7 @@ class DeflateWriter implements WriterInterface
     private function write(string $data, int $flushMode): void
     {
         if ($this->file === null || $this->deflateContext === null) {
-            // @codeCoverageIgnoreStart
             return;
-            // @codeCoverageIgnoreEnd
         }
 
         $compressedChunk = deflate_add($this->deflateContext, $data, $flushMode);

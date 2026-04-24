@@ -278,7 +278,7 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
 
-    public function testAsciiLocationValidationFastPathDoesNotAcceptInvalidUrls(): void
+    public function testLocationValidationRejectsUrlsWithSpaces(): void
     {
         $fileName = __DIR__ . '/sitemap.xml';
         $sitemap = new Sitemap($fileName);
@@ -296,7 +296,34 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
 
-    public function testNonHttpAsciiLocationFallsBackToFilterValidation(): void
+    public function testLocationValidationRejectsInvalidHostsAndPorts(): void
+    {
+        $locations = [
+            'http://example..com/path',
+            'http://example-.com/path',
+            'http://example.com:99999/path',
+            'http://' . str_repeat('a.', 126) . 'com/path',
+        ];
+
+        foreach ($locations as $i => $location) {
+            $fileName = __DIR__ . "/sitemap_invalid_ascii_{$i}.xml";
+            $sitemap = new Sitemap($fileName);
+
+            try {
+                $sitemap->addItem($location);
+                $this->fail("Expected InvalidArgumentException for {$location}.");
+            } catch (InvalidArgumentException $e) {
+                $this->assertStringContainsString($location, $e->getMessage());
+            } finally {
+                unset($sitemap);
+                if (file_exists($fileName)) {
+                    unlink($fileName);
+                }
+            }
+        }
+    }
+
+    public function testNonHttpAsciiLocationIsAccepted(): void
     {
         $fileName = __DIR__ . '/sitemap_ftp.xml';
         $sitemap = new Sitemap($fileName);
