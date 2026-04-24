@@ -273,6 +273,38 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
 
+    public function testAsciiLocationValidationFastPathDoesNotAcceptInvalidUrls()
+    {
+        $fileName = __DIR__ . '/sitemap.xml';
+        $sitemap = new Sitemap($fileName);
+
+        $exceptionCaught = false;
+        try {
+            $sitemap->addItem('http://example.com/valid');
+            $sitemap->addItem('http://bad host/invalid');
+        } catch (\InvalidArgumentException $e) {
+            $exceptionCaught = true;
+        }
+
+        unlink($fileName);
+
+        $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
+    }
+
+    public function testNonHttpAsciiLocationFallsBackToFilterValidation()
+    {
+        $fileName = __DIR__ . '/sitemap_ftp.xml';
+        $sitemap = new Sitemap($fileName);
+        $sitemap->addItem('ftp://example.com/files/sitemap-export.xml');
+        $sitemap->write();
+
+        $this->assertFileExists($fileName);
+        $this->assertStringContainsString('ftp://example.com/files/sitemap-export.xml', file_get_contents($fileName));
+        $this->assertIsValidSitemap($fileName);
+
+        unlink($fileName);
+    }
+
     public function testMultiLanguageLocationValidation()
     {
         $fileName = __DIR__ . '/sitemap.xml';

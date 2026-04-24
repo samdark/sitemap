@@ -17,6 +17,10 @@ trait UrlEncoderTrait
      */
     protected function encodeUrl($url)
     {
+        if (!preg_match('/[^\x00-\x7F]/', $url)) {
+            return $url;
+        }
+
         $parsed = parse_url($url);
 
         if ($parsed === false) {
