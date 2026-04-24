@@ -23,11 +23,16 @@
     },
     "scripts": {
        "test" : "@php vendor/bin/phpunit tests",
-       "bench" : "@php vendor/bin/phpbench run --report=sitemap"
+       "bench" : "@php vendor/bin/phpbench run --report=sitemap",
+       "phpstan" : "@php vendor/bin/phpstan analyse --debug",
+       "rector" : "@php vendor/bin/rector process --dry-run",
+       "rector:fix" : "@php vendor/bin/rector process"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.0",
-        "phpbench/phpbench": "~1.0.0"
+        "phpbench/phpbench": "~1.0.0",
+        "phpstan/phpstan": "^2.1",
+        "rector/rector": "^2.4"
     },
     "autoload": {
         "psr-4": {

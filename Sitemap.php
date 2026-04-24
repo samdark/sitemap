@@ -61,7 +61,7 @@ class Sitemap
     /**
      * @var array path of files written
      */
-    private $writtenFilePaths = array();
+    private $writtenFilePaths = [];
 
     /**
      * @var integer number of URLs to be kept in memory before writing it to file
@@ -83,7 +83,7 @@ class Sitemap
     /**
      * @var array valid values for frequency parameter
      */
-    private $validFrequencies = array(
+    private $validFrequencies = [
         self::ALWAYS,
         self::HOURLY,
         self::DAILY,
@@ -91,12 +91,12 @@ class Sitemap
         self::MONTHLY,
         self::YEARLY,
         self::NEVER
-    );
+    ];
 
     /**
      * @var array valid values for frequency parameter as map
      */
-    private $validFrequenciesMap = array(
+    private $validFrequenciesMap = [
         self::ALWAYS => true,
         self::HOURLY => true,
         self::DAILY => true,
@@ -104,12 +104,12 @@ class Sitemap
         self::MONTHLY => true,
         self::YEARLY => true,
         self::NEVER => true
-    );
+    ];
 
     /**
      * @var array formatted priority values
      */
-    private $formattedPriorities = array();
+    private $formattedPriorities = [];
 
     /**
      * @var bool whether to gzip the resulting files or not
@@ -419,7 +419,7 @@ class Sitemap
      */
     private function addMultiLanguageItem($locations, $lastModified, $changeFrequency, $priority)
     {
-        $encodedLocations = array();
+        $encodedLocations = [];
         foreach ($locations as $language => $url) {
             $encodedUrl = $this->encodeUrl($url);
             $this->validateLocation($encodedUrl);
@@ -531,7 +531,7 @@ class Sitemap
      */
     public function getSitemapUrls($baseUrl)
     {
-        $urls = array();
+        $urls = [];
         foreach ($this->writtenFilePaths as $file) {
             $urls[] = $baseUrl . pathinfo($file, PATHINFO_BASENAME);
         }

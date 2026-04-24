@@ -68,7 +68,7 @@ trait UrlEncoderTrait
         // Query string — encode only non-ASCII bytes in each key and value
         if (isset($parsed['query'])) {
             $parts = explode('&', $parsed['query']);
-            $encodedParts = array();
+            $encodedParts = [];
             foreach ($parts as $part) {
                 if (strpos($part, '=') !== false) {
                     list($key, $value) = explode('=', $part, 2);

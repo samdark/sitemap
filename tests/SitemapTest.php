@@ -102,7 +102,7 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/' .'sitemap_multi.xml',
             __DIR__ . '/' .'sitemap_multi_2.xml',
             __DIR__ . '/' .'sitemap_multi_3.xml',
@@ -113,7 +113,7 @@ EOF;
             __DIR__ . '/' .'sitemap_multi_8.xml',
             __DIR__ . '/' .'sitemap_multi_9.xml',
             __DIR__ . '/' .'sitemap_multi_10.xml',
-        );
+        ];
         foreach ($expectedFiles as $expectedFile) {
             $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
             $this->assertIsValidSitemap($expectedFile);
@@ -135,20 +135,20 @@ EOF;
         $sitemap = new Sitemap($fileName, true);
         $sitemap->addItem('http://example.com/mylink1');
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/ru/mylink2',
             'en' => 'http://example.com/en/mylink2',
-        ), time());
+        ], time());
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/ru/mylink3',
             'en' => 'http://example.com/en/mylink3',
-        ), time(), Sitemap::HOURLY);
+        ], time(), Sitemap::HOURLY);
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/ru/mylink4',
             'en' => 'http://example.com/en/mylink4',
-        ), time(), Sitemap::DAILY, 0.3);
+        ], time(), Sitemap::DAILY, 0.3);
 
         $sitemap->write();
 
@@ -165,22 +165,22 @@ EOF;
         $sitemap = new Sitemap(__DIR__ . '/sitemap_multilang_split.xml', true);
         $sitemap->setMaxUrls(2);
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/ru/mylink1',
             'en' => 'http://example.com/en/mylink1',
-        ));
+        ]);
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/ru/mylink2',
             'en' => 'http://example.com/en/mylink2',
-        ));
+        ]);
 
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/sitemap_multilang_split.xml',
             __DIR__ . '/sitemap_multilang_split_2.xml',
-        );
+        ];
 
         foreach ($expectedFiles as $expectedFile) {
             $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
@@ -311,17 +311,17 @@ EOF;
         $sitemap = new Sitemap($fileName);
 
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/mylink1',
             'en' => 'http://example.com/mylink2',
-        ));
+        ]);
 
         $exceptionCaught = false;
         try {
-            $sitemap->addItem(array(
+            $sitemap->addItem([
                 'ru' => 'http://example.com/mylink3',
                 'en' => 'notlink',
-            ), time());
+            ], time());
         } catch (\InvalidArgumentException $e) {
             $exceptionCaught = true;
         }
@@ -338,10 +338,10 @@ EOF;
 
         $exceptionCaught = false;
         try {
-            $sitemap->addItem(array(
+            $sitemap->addItem([
                 'de' => 'http://example.com/de/mylink1',
                 'en' => 'http://example.com/en/mylink1',
-            ), time(), 'invalid');
+            ], time(), 'invalid');
         } catch (\InvalidArgumentException $e) {
             $exceptionCaught = true;
         }
@@ -361,10 +361,10 @@ EOF;
 
         $exceptionCaught = false;
         try {
-            $sitemap->addItem(array(
+            $sitemap->addItem([
                 'de' => 'http://example.com/de/mylink1',
                 'en' => 'http://example.com/en/mylink1',
-            ), time(), Sitemap::DAILY, 2.0);
+            ], time(), Sitemap::DAILY, 2.0);
         } catch (\InvalidArgumentException $e) {
             $exceptionCaught = true;
         }
@@ -408,7 +408,7 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/' .'sitemap_multi_gzipped.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_2.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_3.xml.gz',
@@ -419,7 +419,7 @@ EOF;
             __DIR__ . '/' .'sitemap_multi_gzipped_8.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_9.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_10.xml.gz',
-        );
+        ];
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
         foreach ($expectedFiles as $expectedFile) {
             $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
@@ -447,11 +447,11 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/' .'sitemap_multi.xml',
             __DIR__ . '/' .'sitemap_multi_2.xml',
             __DIR__ . '/' .'sitemap_multi_3.xml',
-        );
+        ];
 
         $this->assertEquals($sizeLimit, filesize($expectedFiles[1]));
 
@@ -539,9 +539,9 @@ EOF;
 
         $fileName = __DIR__ . '/sitemap_big.xml';
 
-        $times = array();
+        $times = [];
 
-        foreach (array(1000, 10) as $bufferSize) {
+        foreach ([1000, 10] as $bufferSize) {
             $startTime = microtime(true);
 
             $sitemap = new Sitemap($fileName);
@@ -584,10 +584,10 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/sitemap.xml',
             __DIR__ . '/sitemap_2.xml',
-        );
+        ];
         $expected[] = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -660,10 +660,10 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/sitemap.xml',
             __DIR__ . '/sitemap_2.xml',
-        );
+        ];
         $expected[] = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -734,10 +734,10 @@ EOF;
         }
         $customSitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/sitemap_custom.xml',
             __DIR__ . '/sitemap_custom-2.xml',
-        );
+        ];
         foreach ($expectedFiles as $expectedFile) {
             $this->assertFileExists($expectedFile);
             $this->assertIsValidSitemap($expectedFile);
@@ -782,10 +782,10 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/sitemap_stylesheet_multi.xml',
             __DIR__ . '/sitemap_stylesheet_multi_2.xml',
-        );
+        ];
         foreach ($expectedFiles as $expectedFile) {
             $this->assertFileExists($expectedFile);
             $content = file_get_contents($expectedFile);
