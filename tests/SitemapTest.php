@@ -120,6 +120,8 @@ EOF;
             unlink($expectedFile);
         }
 
+        $this->assertEquals($expectedFiles, $sitemap->getWrittenFilePath());
+
         $urls = $sitemap->getSitemapUrls('http://example.com/');
         $this->assertEquals(10, count($urls), print_r($urls, true));
         $this->assertContains('http://example.com/sitemap_multi.xml', $urls);
@@ -200,6 +202,41 @@ EOF;
         unlink($fileName);
     }
 
+    public function testInvalidDirectoryValidation()
+    {
+        $this->expectException('InvalidArgumentException');
+
+        new Sitemap(__DIR__ . '/missing-directory/sitemap.xml');
+    }
+
+    public function testExistingUnwritableFileValidation()
+    {
+        $fileName = __DIR__ . '/sitemap_unwritable.xml';
+        file_put_contents($fileName, 'previous sitemap contents');
+        chmod($fileName, 0444);
+
+        if (is_writable($fileName)) {
+            chmod($fileName, 0644);
+            unlink($fileName);
+            $this->markTestSkipped('Filesystem does not make the file unwritable with chmod(0444).');
+        }
+
+        $exceptionCaught = false;
+        try {
+            $sitemap = new Sitemap($fileName);
+            $sitemap->addItem('http://example.com/mylink1');
+        } catch (\RuntimeException $e) {
+            $exceptionCaught = true;
+        } finally {
+            if (file_exists($fileName)) {
+                chmod($fileName, 0644);
+                unlink($fileName);
+            }
+        }
+
+        $this->assertTrue($exceptionCaught, 'Expected RuntimeException wasn\'t thrown.');
+    }
+
     public function testPriorityValidation()
     {
         $fileName = __DIR__ . '/sitemap.xml';
@@ -258,6 +295,52 @@ EOF;
         }
 
         unlink($fileName);
+
+        $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
+    }
+
+    public function testMultiLanguageFrequencyValidation()
+    {
+        $fileName = __DIR__ . '/sitemap.xml';
+        $sitemap = new Sitemap($fileName, true);
+
+        $exceptionCaught = false;
+        try {
+            $sitemap->addItem(array(
+                'de' => 'http://example.com/de/mylink1',
+                'en' => 'http://example.com/en/mylink1',
+            ), time(), 'invalid');
+        } catch (\InvalidArgumentException $e) {
+            $exceptionCaught = true;
+        }
+
+        unset($sitemap);
+        if (file_exists($fileName)) {
+            unlink($fileName);
+        }
+
+        $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
+    }
+
+    public function testMultiLanguagePriorityValidation()
+    {
+        $fileName = __DIR__ . '/sitemap.xml';
+        $sitemap = new Sitemap($fileName, true);
+
+        $exceptionCaught = false;
+        try {
+            $sitemap->addItem(array(
+                'de' => 'http://example.com/de/mylink1',
+                'en' => 'http://example.com/en/mylink1',
+            ), time(), Sitemap::DAILY, 2.0);
+        } catch (\InvalidArgumentException $e) {
+            $exceptionCaught = true;
+        }
+
+        unset($sitemap);
+        if (file_exists($fileName)) {
+            unlink($fileName);
+        }
 
         $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
@@ -371,6 +454,48 @@ EOF;
         unlink($fileName);
 
         $this->assertTrue($exceptionCaught, 'Expected OverflowException wasn\'t thrown.');
+    }
+
+    public function testWritingFileWithoutIndent()
+    {
+        $fileName = __DIR__ . '/sitemap_no_indent.xml';
+        $sitemap = new Sitemap($fileName);
+        $sitemap->setUseIndent(false);
+        $sitemap->addItem('http://example.com/mylink1', 100, Sitemap::DAILY, 0.5);
+        $sitemap->write();
+
+        $this->assertFileExists($fileName);
+        $content = trim(file_get_contents($fileName));
+        $expected = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+            . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n"
+            . '<url><loc>http://example.com/mylink1</loc>'
+            . '<lastmod>1970-01-01T00:01:40+00:00</lastmod>'
+            . '<changefreq>daily</changefreq>'
+            . '<priority>0.5</priority></url></urlset>';
+
+        $this->assertSame($expected, $content);
+        $this->assertIsValidSitemap($fileName);
+
+        unlink($fileName);
+    }
+
+    public function testChangingGzipAfterWritingItemsIsRejected()
+    {
+        $fileName = __DIR__ . '/sitemap.xml';
+        $sitemap = new Sitemap($fileName);
+        $sitemap->addItem('http://example.com/mylink1');
+
+        $exceptionCaught = false;
+        try {
+            $sitemap->setUseGzip(true);
+        } catch (\RuntimeException $e) {
+            $exceptionCaught = true;
+        }
+
+        unset($sitemap);
+        unlink($fileName);
+
+        $this->assertTrue($exceptionCaught, 'Expected RuntimeException wasn\'t thrown.');
     }
 
     public function testBufferSizeImpact()
@@ -697,6 +822,24 @@ EOF;
 
         // Query string should be encoded
         $this->assertStringContainsString('http://example.com/search?q=caf%C3%A9', $content);
+
+        $this->assertIsValidSitemap($fileName);
+        unlink($fileName);
+    }
+
+    public function testComplexApplicationUrlEncoding()
+    {
+        $fileName = __DIR__ . '/sitemap_complex_url.xml';
+        $sitemap = new Sitemap($fileName);
+        $sitemap->addItem('http://user:secret@example.com:8080/search/кафе?tag=новости&preview#главная');
+        $sitemap->write();
+
+        $this->assertFileExists($fileName);
+        $content = file_get_contents($fileName);
+        $this->assertStringContainsString(
+            'http://user:secret@example.com:8080/search/%D0%BA%D0%B0%D1%84%D0%B5?tag=%D0%BD%D0%BE%D0%B2%D0%BE%D1%81%D1%82%D0%B8&amp;preview#%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F',
+            $content
+        );
 
         $this->assertIsValidSitemap($fileName);
         unlink($fileName);

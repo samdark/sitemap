@@ -2,8 +2,11 @@
 
 namespace samdark\sitemap;
 
+// @codeCoverageIgnoreStart
 /**
- * Flushes buffer into temporary stream and compresses stream into a file on finish
+ * Flushes buffer into temporary stream and compresses stream into a file on finish.
+ *
+ * Used on PHP builds where the zlib extension is available but incremental deflate functions are not.
  */
 class TempFileGZIPWriter implements WriterInterface
 {
@@ -13,7 +16,7 @@ class TempFileGZIPWriter implements WriterInterface
     private $filename;
 
     /**
-     * @var ressource for php://temp stream
+     * @var resource for php://temp stream
      */
     private $tempFile;
 
@@ -54,3 +57,4 @@ class TempFileGZIPWriter implements WriterInterface
         $this->tempFile = null;
     }
 }
+// @codeCoverageIgnoreEnd

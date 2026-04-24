@@ -120,7 +120,9 @@ class Index
     public function setUseGzip($value)
     {
         if ($value && !extension_loaded('zlib')) {
+            // @codeCoverageIgnoreStart
             throw new \RuntimeException('Zlib extension must be installed to gzip the sitemap.');
+            // @codeCoverageIgnoreEnd
         }
         $this->useGzip = $value;
     }

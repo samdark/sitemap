@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://www.w3.org/XML/1998/namespace"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:xml="http://www.w3.org/XML/1998/namespace"
+           elementFormDefault="qualified"
+           attributeFormDefault="qualified">
+  <xs:attribute name="lang" type="xs:language"/>
+  <xs:attribute name="space">
+    <xs:simpleType>
+      <xs:restriction base="xs:NCName">
+        <xs:enumeration value="default"/>
+        <xs:enumeration value="preserve"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="base" type="xs:anyURI"/>
+  <xs:attribute name="id" type="xs:ID"/>
+</xs:schema>

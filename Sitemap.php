@@ -155,7 +155,9 @@ class Sitemap
             if (function_exists('deflate_init') && function_exists('deflate_add')) {
                 $this->writerBackend = new DeflateWriter($filePath);
             } else {
+                // @codeCoverageIgnoreStart
                 $this->writerBackend = new TempFileGZIPWriter($filePath);
+                // @codeCoverageIgnoreEnd
             }
         } else {
             $this->writerBackend = new PlainFileWriter($filePath);
@@ -546,7 +548,9 @@ class Sitemap
     public function setUseGzip($value)
     {
         if ($value && !extension_loaded('zlib')) {
+            // @codeCoverageIgnoreStart
             throw new \RuntimeException('Zlib extension must be enabled to gzip the sitemap.');
+            // @codeCoverageIgnoreEnd
         }
         if ($this->writerBackend !== null && $value != $this->useGzip) {
             throw new \RuntimeException('Cannot change the gzip value once items have been added to the sitemap.');
