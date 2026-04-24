@@ -1,0 +1,19 @@
+# Autodetect text files
+* text=auto eol=lf
+
+# Definitively text files
+*.php text
+*.md text
+*.xml.dist text
+*.xsl text
+*.xsd text
+*.json text
+
+# Package only necessary files
+* export-ignore
+
+/composer.json -export-ignore
+/example-sitemap-stylesheet.xsl -export-ignore
+/LICENSE -export-ignore
+/README.md -export-ignore
+/src/** -export-ignore
