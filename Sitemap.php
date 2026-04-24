@@ -465,7 +465,7 @@ class Sitemap
             throw new InvalidArgumentException(
                 'Please specify valid changeFrequency. Valid values are: '
                 . implode(', ', $this->validFrequencies)
-                . "You have specified: {$changeFrequency}."
+                . ". You have specified: {$changeFrequency}."
             );
         }
     }

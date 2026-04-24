@@ -134,7 +134,7 @@ class SitemapGenerationBench
     {
         $directory = sys_get_temp_dir() . '/samdark-sitemap-bench-' . getmypid() . '-' . $name . '-' . (++$this->run);
 
-        if (!is_dir($directory) && !mkdir($directory, 0777, true)) {
+        if (!is_dir($directory) && !mkdir($directory, 0700, true)) {
             throw new RuntimeException('Unable to create benchmark directory: ' . $directory);
         }
 
