@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <phpunit bootstrap="./vendor/autoload.php">
+    <coverage>
+        <include>
+            <file>./DeflateWriter.php</file>
+            <file>./Index.php</file>
+            <file>./PlainFileWriter.php</file>
+            <file>./Sitemap.php</file>
+            <file>./TempFileGZIPWriter.php</file>
+            <file>./UrlEncoderTrait.php</file>
+            <file>./WriterInterface.php</file>
+        </include>
+    </coverage>
     <testsuites>
         <testsuite name="Sitemap test suite">
             <directory>./tests</directory>

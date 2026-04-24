@@ -45,7 +45,9 @@ trait UrlEncoderTrait
                 $host = idn_to_ascii($parsed['host'], IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
                 $encoded .= $host !== false ? $host : $parsed['host'];
             } else {
+                // @codeCoverageIgnoreStart
                 $encoded .= $parsed['host'];
+                // @codeCoverageIgnoreEnd
             }
         }
 
