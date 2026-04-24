@@ -18,20 +18,34 @@
         "source": "https://github.com/samdark/sitemap"
     },
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=7.1",
         "ext-xmlwriter": "*"
+    },
+    "suggest": {
+        "ext-zlib": "For gzipped sitemaps",
+        "ext-intl": "For encoding international domain names"
     },
     "scripts": {
        "test" : "@php vendor/bin/phpunit tests",
-       "bench" : "@php vendor/bin/phpbench run --report=sitemap"
+       "bench" : "@php vendor/bin/phpbench run --report=sitemap",
+       "phpstan" : "@php vendor/bin/phpstan analyse --debug",
+       "rector" : "@php vendor/bin/rector process --dry-run",
+       "rector:fix" : "@php vendor/bin/rector process"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.0",
-        "phpbench/phpbench": "~1.0.0"
+        "phpbench/phpbench": "~1.0.0",
+        "phpstan/phpstan": "^1.12.5",
+        "rector/rector": "^1.2.10"
     },
     "autoload": {
         "psr-4": {
-            "samdark\\sitemap\\": ""
+            "samdark\\sitemap\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "samdark\\sitemap\\tests\\": "tests/"
         }
     }
 }

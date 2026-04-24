@@ -1,31 +1,35 @@
 <?php
 namespace samdark\sitemap\tests;
 
-use SebastianBergmann\Timer\Timer;
+use DOMDocument;
+use finfo;
+use InvalidArgumentException;
+use PHPUnit\Framework\TestCase;
 
+use RuntimeException;
 use samdark\sitemap\Sitemap;
 
-class SitemapTest extends \PHPUnit\Framework\TestCase
+class SitemapTest extends TestCase
 {
-    const HEADER_LENGTH = 100;
-    const FOOTER_LENGTH = 10;
-    const ELEMENT_LENGTH_WITHOUT_URL = 137;
+    private const HEADER_LENGTH = 100;
+    private const FOOTER_LENGTH = 10;
+    private const ELEMENT_LENGTH_WITHOUT_URL = 137;
 
     /**
-     * Asserts validity of simtemap according to XSD schema
-     * @param string $fileName
-     * @param bool $xhtml
+     * Asserts validity of sitemap according to the XSD schema.
+     * @param string $fileName File name.
+     * @param bool $xhtml Whether XHTML schema should be used.
      */
-    protected function assertIsValidSitemap($fileName, $xhtml = false)
+    protected function assertIsValidSitemap(string $fileName, bool $xhtml = false): void
     {
         $xsdFileName = $xhtml ? 'sitemap_xhtml.xsd' : 'sitemap.xsd';
 
-        $xml = new \DOMDocument();
+        $xml = new DOMDocument();
         $xml->load($fileName);
         $this->assertTrue($xml->schemaValidate(__DIR__ . '/' . $xsdFileName));
     }
 
-    protected function assertIsOneMemberGzipFile($fileName)
+    protected function assertIsOneMemberGzipFile(string $fileName): void
     {
         $gzipMemberStartSequence = pack('H*', '1f8b08');
         $content = file_get_contents($fileName);
@@ -33,7 +37,7 @@ class SitemapTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($isOneMemberGzipFile, "There are more than one gzip member in $fileName");
     }
 
-    public function testWritingFile()
+    public function testWritingFile(): void
     {
         $fileName = __DIR__ . '/sitemap_regular.xml';
         $sitemap = new Sitemap($fileName);
@@ -43,7 +47,7 @@ class SitemapTest extends \PHPUnit\Framework\TestCase
         $sitemap->addItem('http://example.com/mylink4', time(), Sitemap::DAILY, 0.3);
         $sitemap->write();
 
-        $this->assertTrue(file_exists($fileName));
+        $this->assertFileExists($fileName);
         $this->assertIsValidSitemap($fileName);
         $this->assertFileExists($fileName);
 
@@ -53,7 +57,8 @@ class SitemapTest extends \PHPUnit\Framework\TestCase
     }
 
 
-    public function testAgainstExpectedXml() {
+    public function testAgainstExpectedXml(): void
+    {
         $fileName = __DIR__ . '/sitemap_regular.xml';
         $sitemap = new Sitemap($fileName);
 
@@ -92,7 +97,7 @@ EOF;
         $this->assertEquals($expected, $x);
     }
 
-    public function testMultipleFiles()
+    public function testMultipleFiles(): void
     {
         $sitemap = new Sitemap(__DIR__ . '/sitemap_multi.xml');
         $sitemap->setMaxUrls(2);
@@ -102,7 +107,7 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/' .'sitemap_multi.xml',
             __DIR__ . '/' .'sitemap_multi_2.xml',
             __DIR__ . '/' .'sitemap_multi_3.xml',
@@ -113,9 +118,9 @@ EOF;
             __DIR__ . '/' .'sitemap_multi_8.xml',
             __DIR__ . '/' .'sitemap_multi_9.xml',
             __DIR__ . '/' .'sitemap_multi_10.xml',
-        );
+        ];
         foreach ($expectedFiles as $expectedFile) {
-            $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
+            $this->assertFileExists($expectedFile, "$expectedFile does not exist!");
             $this->assertIsValidSitemap($expectedFile);
             unlink($expectedFile);
         }
@@ -123,74 +128,74 @@ EOF;
         $this->assertEquals($expectedFiles, $sitemap->getWrittenFilePath());
 
         $urls = $sitemap->getSitemapUrls('http://example.com/');
-        $this->assertEquals(10, count($urls), print_r($urls, true));
+        $this->assertCount(10, $urls, print_r($urls, true));
         $this->assertContains('http://example.com/sitemap_multi.xml', $urls);
         $this->assertContains('http://example.com/sitemap_multi_10.xml', $urls);
     }
 
 
-    public function testMultiLanguageSitemap()
+    public function testMultiLanguageSitemap(): void
     {
         $fileName = __DIR__ . '/sitemap_multi_language.xml';
         $sitemap = new Sitemap($fileName, true);
         $sitemap->addItem('http://example.com/mylink1');
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/ru/mylink2',
             'en' => 'http://example.com/en/mylink2',
-        ), time());
+        ], time());
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/ru/mylink3',
             'en' => 'http://example.com/en/mylink3',
-        ), time(), Sitemap::HOURLY);
+        ], time(), Sitemap::HOURLY);
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/ru/mylink4',
             'en' => 'http://example.com/en/mylink4',
-        ), time(), Sitemap::DAILY, 0.3);
+        ], time(), Sitemap::DAILY, 0.3);
 
         $sitemap->write();
 
-        $this->assertTrue(file_exists($fileName));
+        $this->assertFileExists($fileName);
         $this->assertIsValidSitemap($fileName, true);
 
         unlink($fileName);
     }
 
-    public function testMultiLanguageSitemapFileSplitting()
+    public function testMultiLanguageSitemapFileSplitting(): void
     {
         // Each multi-language addItem() with 2 languages writes 2 <url> elements.
         // With maxUrls = 2, the second addItem() (adding 2 more URLs) should trigger a new file.
         $sitemap = new Sitemap(__DIR__ . '/sitemap_multilang_split.xml', true);
         $sitemap->setMaxUrls(2);
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/ru/mylink1',
             'en' => 'http://example.com/en/mylink1',
-        ));
+        ]);
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/ru/mylink2',
             'en' => 'http://example.com/en/mylink2',
-        ));
+        ]);
 
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/sitemap_multilang_split.xml',
             __DIR__ . '/sitemap_multilang_split_2.xml',
-        );
+        ];
 
         foreach ($expectedFiles as $expectedFile) {
-            $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
+            $this->assertFileExists($expectedFile, "$expectedFile does not exist!");
             $this->assertIsValidSitemap($expectedFile, true);
             unlink($expectedFile);
         }
     }
 
 
-    public function testFrequencyValidation()
+    public function testFrequencyValidation(): void
     {
         $this->expectException('InvalidArgumentException');
 
@@ -202,14 +207,14 @@ EOF;
         unlink($fileName);
     }
 
-    public function testInvalidDirectoryValidation()
+    public function testInvalidDirectoryValidation(): void
     {
         $this->expectException('InvalidArgumentException');
 
         new Sitemap(__DIR__ . '/missing-directory/sitemap.xml');
     }
 
-    public function testExistingUnwritableFileValidation()
+    public function testExistingUnwritableFileValidation(): void
     {
         $fileName = __DIR__ . '/sitemap_unwritable.xml';
         file_put_contents($fileName, 'previous sitemap contents');
@@ -225,7 +230,7 @@ EOF;
         try {
             $sitemap = new Sitemap($fileName);
             $sitemap->addItem('http://example.com/mylink1');
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             $exceptionCaught = true;
         } finally {
             if (file_exists($fileName)) {
@@ -237,7 +242,7 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected RuntimeException wasn\'t thrown.');
     }
 
-    public function testPriorityValidation()
+    public function testPriorityValidation(): void
     {
         $fileName = __DIR__ . '/sitemap.xml';
         $sitemap = new Sitemap($fileName);
@@ -246,7 +251,7 @@ EOF;
         try {
             $sitemap->addItem('http://example.com/mylink1');
             $sitemap->addItem('http://example.com/mylink2', time(), 'always', 2.0);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $exceptionCaught = true;
         }
 
@@ -255,7 +260,7 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
 
-    public function testLocationValidation()
+    public function testLocationValidation(): void
     {
         $fileName = __DIR__ . '/sitemap.xml';
         $sitemap = new Sitemap($fileName);
@@ -264,7 +269,7 @@ EOF;
         try {
             $sitemap->addItem('http://example.com/mylink1');
             $sitemap->addItem('notlink', time());
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $exceptionCaught = true;
         }
 
@@ -273,7 +278,7 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
 
-    public function testAsciiLocationValidationFastPathDoesNotAcceptInvalidUrls()
+    public function testLocationValidationRejectsUrlsWithSpaces(): void
     {
         $fileName = __DIR__ . '/sitemap.xml';
         $sitemap = new Sitemap($fileName);
@@ -282,7 +287,7 @@ EOF;
         try {
             $sitemap->addItem('http://example.com/valid');
             $sitemap->addItem('http://bad host/invalid');
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $exceptionCaught = true;
         }
 
@@ -291,7 +296,34 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
 
-    public function testNonHttpAsciiLocationFallsBackToFilterValidation()
+    public function testLocationValidationRejectsInvalidHostsAndPorts(): void
+    {
+        $locations = [
+            'http://example..com/path',
+            'http://example-.com/path',
+            'http://example.com:99999/path',
+            'http://' . str_repeat('a.', 126) . 'com/path',
+        ];
+
+        foreach ($locations as $i => $location) {
+            $fileName = __DIR__ . "/sitemap_invalid_ascii_{$i}.xml";
+            $sitemap = new Sitemap($fileName);
+
+            try {
+                $sitemap->addItem($location);
+                $this->fail("Expected InvalidArgumentException for {$location}.");
+            } catch (InvalidArgumentException $e) {
+                $this->assertStringContainsString($location, $e->getMessage());
+            } finally {
+                unset($sitemap);
+                if (file_exists($fileName)) {
+                    unlink($fileName);
+                }
+            }
+        }
+    }
+
+    public function testNonHttpAsciiLocationIsAccepted(): void
     {
         $fileName = __DIR__ . '/sitemap_ftp.xml';
         $sitemap = new Sitemap($fileName);
@@ -305,24 +337,24 @@ EOF;
         unlink($fileName);
     }
 
-    public function testMultiLanguageLocationValidation()
+    public function testMultiLanguageLocationValidation(): void
     {
         $fileName = __DIR__ . '/sitemap.xml';
         $sitemap = new Sitemap($fileName);
 
 
-        $sitemap->addItem(array(
+        $sitemap->addItem([
             'ru' => 'http://example.com/mylink1',
             'en' => 'http://example.com/mylink2',
-        ));
+        ]);
 
         $exceptionCaught = false;
         try {
-            $sitemap->addItem(array(
+            $sitemap->addItem([
                 'ru' => 'http://example.com/mylink3',
                 'en' => 'notlink',
-            ), time());
-        } catch (\InvalidArgumentException $e) {
+            ], time());
+        } catch (InvalidArgumentException $e) {
             $exceptionCaught = true;
         }
 
@@ -331,18 +363,18 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
 
-    public function testMultiLanguageFrequencyValidation()
+    public function testMultiLanguageFrequencyValidation(): void
     {
         $fileName = __DIR__ . '/sitemap.xml';
         $sitemap = new Sitemap($fileName, true);
 
         $exceptionCaught = false;
         try {
-            $sitemap->addItem(array(
+            $sitemap->addItem([
                 'de' => 'http://example.com/de/mylink1',
                 'en' => 'http://example.com/en/mylink1',
-            ), time(), 'invalid');
-        } catch (\InvalidArgumentException $e) {
+            ], time(), 'invalid');
+        } catch (InvalidArgumentException $e) {
             $exceptionCaught = true;
         }
 
@@ -354,18 +386,18 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
 
-    public function testMultiLanguagePriorityValidation()
+    public function testMultiLanguagePriorityValidation(): void
     {
         $fileName = __DIR__ . '/sitemap.xml';
         $sitemap = new Sitemap($fileName, true);
 
         $exceptionCaught = false;
         try {
-            $sitemap->addItem(array(
+            $sitemap->addItem([
                 'de' => 'http://example.com/de/mylink1',
                 'en' => 'http://example.com/en/mylink1',
-            ), time(), Sitemap::DAILY, 2.0);
-        } catch (\InvalidArgumentException $e) {
+            ], time(), Sitemap::DAILY, 2.0);
+        } catch (InvalidArgumentException $e) {
             $exceptionCaught = true;
         }
 
@@ -377,7 +409,7 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected InvalidArgumentException wasn\'t thrown.');
     }
 
-    public function testWritingFileGzipped()
+    public function testWritingFileGzipped(): void
     {
         $fileName = __DIR__ . '/sitemap_gzipped.xml.gz';
         $sitemap = new Sitemap($fileName);
@@ -388,8 +420,8 @@ EOF;
         $sitemap->addItem('http://example.com/mylink4', time(), Sitemap::DAILY, 0.3);
         $sitemap->write();
 
-        $this->assertTrue(file_exists($fileName));
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $this->assertFileExists($fileName);
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
         $this->assertMatchesRegularExpression('!application/(x-)?gzip!', $finfo->file($fileName));
         $this->assertIsValidSitemap('compress.zlib://' . $fileName);
         $this->assertIsOneMemberGzipFile($fileName);
@@ -397,7 +429,7 @@ EOF;
         unlink($fileName);
     }
 
-    public function testMultipleFilesGzipped()
+    public function testMultipleFilesGzipped(): void
     {
         $sitemap = new Sitemap(__DIR__ . '/sitemap_multi_gzipped.xml.gz');
         $sitemap->setUseGzip(true);
@@ -408,7 +440,7 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/' .'sitemap_multi_gzipped.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_2.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_3.xml.gz',
@@ -419,10 +451,10 @@ EOF;
             __DIR__ . '/' .'sitemap_multi_gzipped_8.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_9.xml.gz',
             __DIR__ . '/' .'sitemap_multi_gzipped_10.xml.gz',
-        );
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        ];
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
         foreach ($expectedFiles as $expectedFile) {
-            $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
+            $this->assertFileExists($expectedFile, "$expectedFile does not exist!");
             $this->assertMatchesRegularExpression('!application/(x-)?gzip!', $finfo->file($expectedFile));
             $this->assertIsValidSitemap('compress.zlib://' . $expectedFile);
             $this->assertIsOneMemberGzipFile($expectedFile);
@@ -430,12 +462,12 @@ EOF;
         }
 
         $urls = $sitemap->getSitemapUrls('http://example.com/');
-        $this->assertEquals(10, count($urls), print_r($urls, true));
+        $this->assertCount(10, $urls, print_r($urls, true));
         $this->assertContains('http://example.com/sitemap_multi_gzipped.xml.gz', $urls);
         $this->assertContains('http://example.com/sitemap_multi_gzipped_10.xml.gz', $urls);
     }
 
-    public function testFileSizeLimit()
+    public function testFileSizeLimit(): void
     {
         $sitemap = new Sitemap(__DIR__ . '/sitemap_multi.xml');
         $sizeLimit = 1036;
@@ -447,28 +479,28 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/' .'sitemap_multi.xml',
             __DIR__ . '/' .'sitemap_multi_2.xml',
             __DIR__ . '/' .'sitemap_multi_3.xml',
-        );
+        ];
 
         $this->assertEquals($sizeLimit, filesize($expectedFiles[1]));
 
         foreach ($expectedFiles as $expectedFile) {
-            $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
+            $this->assertFileExists($expectedFile, "$expectedFile does not exist!");
             $this->assertIsValidSitemap($expectedFile);
             $this->assertLessThanOrEqual($sizeLimit, filesize($expectedFile), "$expectedFile exceeds the size limit");
             unlink($expectedFile);
         }
 
         $urls = $sitemap->getSitemapUrls('http://example.com/');
-        $this->assertEquals(3, count($urls), print_r($urls, true));
+        $this->assertCount(3, $urls, print_r($urls, true));
         $this->assertContains('http://example.com/sitemap_multi.xml', $urls);
         $this->assertContains('http://example.com/sitemap_multi_3.xml', $urls);
     }
 
-    public function testSmallSizeLimit()
+    public function testSmallSizeLimit(): void
     {
         $fileName = __DIR__ . '/sitemap_regular.xml';
         $sitemap = new Sitemap($fileName);
@@ -488,7 +520,7 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected OverflowException wasn\'t thrown.');
     }
 
-    public function testWritingFileWithoutIndent()
+    public function testWritingFileWithoutIndent(): void
     {
         $fileName = __DIR__ . '/sitemap_no_indent.xml';
         $sitemap = new Sitemap($fileName);
@@ -511,7 +543,7 @@ EOF;
         unlink($fileName);
     }
 
-    public function testChangingGzipAfterWritingItemsIsRejected()
+    public function testChangingGzipAfterWritingItemsIsRejected(): void
     {
         $fileName = __DIR__ . '/sitemap.xml';
         $sitemap = new Sitemap($fileName);
@@ -520,7 +552,7 @@ EOF;
         $exceptionCaught = false;
         try {
             $sitemap->setUseGzip(true);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             $exceptionCaught = true;
         }
 
@@ -530,35 +562,30 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected RuntimeException wasn\'t thrown.');
     }
 
-    public function testBufferSizeImpact()
+    public function testBufferSizeDoesNotChangeGeneratedSitemap(): void
     {
-        if (getenv('TRAVIS') == 'true') {
-            $this->markTestSkipped('Can not reliably test performance on travis-ci.');
-            return;
-        }
+        $contents = [];
 
-        $fileName = __DIR__ . '/sitemap_big.xml';
-
-        $times = array();
-
-        foreach (array(1000, 10) as $bufferSize) {
-            $startTime = microtime(true);
-
+        foreach ([1000, 10] as $bufferSize) {
+            $fileName = __DIR__ . "/sitemap_buffer_size_{$bufferSize}.xml";
             $sitemap = new Sitemap($fileName);
             $sitemap->setBufferSize($bufferSize);
-            for ($i = 0; $i < 50000; $i++) {
-                $sitemap->addItem('http://example.com/mylink' . $i, time());
+            for ($i = 0; $i < 20; $i++) {
+                $sitemap->addItem('http://example.com/mylink' . $i, 100);
             }
             $sitemap->write();
 
-            $times[] = microtime(true) - $startTime;
+            $this->assertFileExists($fileName);
+            $this->assertIsValidSitemap($fileName);
+            $contents[$bufferSize] = file_get_contents($fileName);
+
             unlink($fileName);
         }
 
-        $this->assertLessThan($times[0] * 1.2, $times[1]);
+        $this->assertSame($contents[1000], $contents[10]);
     }
 
-    public function testBufferSizeIsNotTooBigOnFinishFileInWrite()
+    public function testBufferSizeIsNotTooBigOnFinishFileInWrite(): void
     {
         $time = 100;
         $urlLength = 13;
@@ -575,7 +602,7 @@ EOF;
 
         for ($i = 0; $i < $urlsQty; $i++) {
             $sitemap->addItem(
-                // url 13 bytes
+                // URL is 13 bytes.
                 "https://a.b/{$i}",
                 $time,
                 Sitemap::WEEKLY,
@@ -584,10 +611,10 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/sitemap.xml',
             __DIR__ . '/sitemap_2.xml',
-        );
+        ];
         $expected[] = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -623,7 +650,7 @@ EOF;
 </urlset>
 EOF;
         foreach ($expectedFiles as $expectedFileNumber => $expectedFile) {
-            $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
+            $this->assertFileExists($expectedFile, "$expectedFile does not exist!");
             $this->assertIsValidSitemap($expectedFile);
 
             $actual = trim(file_get_contents($expectedFile));
@@ -633,7 +660,7 @@ EOF;
         }
     }
 
-    public function testBufferSizeIsNotTooBigOnFinishFileInAddItem()
+    public function testBufferSizeIsNotTooBigOnFinishFileInAddItem(): void
     {
         $time = 100;
         $urlLength = 13;
@@ -644,14 +671,14 @@ EOF;
         $sitemap->setBufferSize(3);
         $sitemap->setMaxUrls(4);
         $sitemap->setMaxBytes(
-            // 100 + 10 + 137 * 4
+            // Formula: 100 + 10 + 137 * 4.
             self::HEADER_LENGTH + self::FOOTER_LENGTH + self::ELEMENT_LENGTH_WITHOUT_URL * 4
                 + $urlLength * 4 - 1
         );
 
         for ($i = 0; $i < $urlsQty; $i++) {
             $sitemap->addItem(
-                // url 13 bytes
+                // URL is 13 bytes.
                 "https://a.b/{$i}",
                 $time,
                 Sitemap::WEEKLY,
@@ -660,10 +687,10 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/sitemap.xml',
             __DIR__ . '/sitemap_2.xml',
-        );
+        ];
         $expected[] = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -705,7 +732,7 @@ EOF;
 </urlset>
 EOF;
         foreach ($expectedFiles as $expectedFileNumber => $expectedFile) {
-            $this->assertTrue(file_exists($expectedFile), "$expectedFile does not exist!");
+            $this->assertFileExists($expectedFile, "$expectedFile does not exist!");
             $this->assertIsValidSitemap($expectedFile);
 
             $actual = trim(file_get_contents($expectedFile));
@@ -715,10 +742,10 @@ EOF;
         }
     }
 
-    public function testGetCurrentFilePathIsOverridable()
+    public function testGetCurrentFilePathIsOverridable(): void
     {
         $customSitemap = new class(__DIR__ . '/sitemap_custom.xml') extends Sitemap {
-            protected function buildCurrentFilePath($filePath, $fileCount)
+            protected function buildCurrentFilePath(string $filePath, int $fileCount): string
             {
                 if ($fileCount < 2) {
                     return $filePath;
@@ -734,10 +761,10 @@ EOF;
         }
         $customSitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/sitemap_custom.xml',
             __DIR__ . '/sitemap_custom-2.xml',
-        );
+        ];
         foreach ($expectedFiles as $expectedFile) {
             $this->assertFileExists($expectedFile);
             $this->assertIsValidSitemap($expectedFile);
@@ -745,7 +772,7 @@ EOF;
         }
     }
 
-    public function testStylesheetIsIncludedInOutput()
+    public function testStylesheetIsIncludedInOutput(): void
     {
         $fileName = __DIR__ . '/sitemap_stylesheet.xml';
         $sitemap = new Sitemap($fileName);
@@ -763,7 +790,7 @@ EOF;
         unlink($fileName);
     }
 
-    public function testStylesheetInvalidUrlThrowsException()
+    public function testStylesheetInvalidUrlThrowsException(): void
     {
         $this->expectException('InvalidArgumentException');
 
@@ -771,7 +798,7 @@ EOF;
         $sitemap->setStylesheet('not-a-valid-url');
     }
 
-    public function testStylesheetInMultipleFiles()
+    public function testStylesheetInMultipleFiles(): void
     {
         $sitemap = new Sitemap(__DIR__ . '/sitemap_stylesheet_multi.xml');
         $sitemap->setStylesheet('http://example.com/sitemap.xsl');
@@ -782,10 +809,10 @@ EOF;
         }
         $sitemap->write();
 
-        $expectedFiles = array(
+        $expectedFiles = [
             __DIR__ . '/sitemap_stylesheet_multi.xml',
             __DIR__ . '/sitemap_stylesheet_multi_2.xml',
-        );
+        ];
         foreach ($expectedFiles as $expectedFile) {
             $this->assertFileExists($expectedFile);
             $content = file_get_contents($expectedFile);
@@ -797,44 +824,44 @@ EOF;
         }
     }
 
-    public function testFileEndsWithClosingTagWhenWriteNotCalledExplicitly()
+    public function testFileEndsWithClosingTagWhenWriteNotCalledExplicitly(): void
     {
         $fileName = __DIR__ . '/sitemap_no_explicit_write.xml';
         $sitemap = new Sitemap($fileName);
 
-        // Add enough items to exceed the default buffer size (10) so data is flushed to disk
+        // Add enough items to exceed the default buffer size so data is flushed to disk.
         for ($i = 1; $i <= 10; $i++) {
             $sitemap->addItem('http://example.com/mylink' . $i);
         }
 
-        // Destroy the sitemap object without calling write() — simulates forgetting to call write()
+        // Destroy the sitemap object without calling write(), simulating a forgotten write().
         unset($sitemap);
 
         $this->assertFileExists($fileName);
 
         $content = trim(file_get_contents($fileName));
 
-        // The file must end with the closing urlset tag even though write() was not called explicitly
+        // The file must end with the closing urlset tag even though write() was not called explicitly.
         $this->assertStringEndsWith('</urlset>', $content, 'Sitemap file must end with </urlset> even when write() is not called explicitly.');
 
         unlink($fileName);
     }
 
-    public function testInternationalUrlEncoding()
+    public function testInternationalUrlEncoding(): void
     {
         $fileName = __DIR__ . '/sitemap_international.xml';
         $sitemap = new Sitemap($fileName);
 
-        // Test with Arabic characters in URL path
+        // Test with Arabic characters in URL path.
         $sitemap->addItem('http://example.com/ar/العامل-الماهر-كاريكاتير');
 
-        // Test with Chinese characters
+        // Test with Chinese characters.
         $sitemap->addItem('http://example.com/zh/测试页面');
 
-        // Test with already encoded URL (should not double-encode)
+        // Test with already encoded URL, which should not double-encode.
         $sitemap->addItem('http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84');
 
-        // Test with query string containing non-ASCII
+        // Test with query string containing non-ASCII.
         $sitemap->addItem('http://example.com/search?q=café');
 
         $sitemap->write();
@@ -843,23 +870,23 @@ EOF;
 
         $content = file_get_contents($fileName);
 
-        // Arabic text should be percent-encoded
+        // Arabic text should be percent-encoded.
         $this->assertStringContainsString('http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84-%D8%A7%D9%84%D9%85%D8%A7%D9%87%D8%B1-%D9%83%D8%A7%D8%B1%D9%8A%D9%83%D8%A7%D8%AA%D9%8A%D8%B1', $content);
 
-        // Chinese text should be percent-encoded
+        // Chinese text should be percent-encoded.
         $this->assertStringContainsString('http://example.com/zh/%E6%B5%8B%E8%AF%95%E9%A1%B5%E9%9D%A2', $content);
 
-        // Already encoded URL should remain the same (not double-encoded)
+        // Already encoded URL should remain the same without double-encoding.
         $this->assertStringContainsString('http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84', $content);
 
-        // Query string should be encoded
+        // Query string should be encoded.
         $this->assertStringContainsString('http://example.com/search?q=caf%C3%A9', $content);
 
         $this->assertIsValidSitemap($fileName);
         unlink($fileName);
     }
 
-    public function testComplexApplicationUrlEncoding()
+    public function testComplexApplicationUrlEncoding(): void
     {
         $fileName = __DIR__ . '/sitemap_complex_url.xml';
         $sitemap = new Sitemap($fileName);

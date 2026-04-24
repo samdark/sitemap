@@ -70,7 +70,7 @@ class SitemapGenerationBench
 
     private function addStaticUrls(Sitemap $sitemap, $urlCount)
     {
-        $paths = array(
+        $paths = [
             'about',
             'tos',
             'privacy',
@@ -79,7 +79,7 @@ class SitemapGenerationBench
             'help',
             'pricing',
             'features',
-        );
+        ];
 
         for ($i = 1; $i <= $urlCount; $i++) {
             $path = $paths[($i - 1) % count($paths)];
@@ -94,10 +94,10 @@ class SitemapGenerationBench
 
         for ($i = 1; $i <= $pageCount; $i++) {
             $sitemap->addItem(
-                array(
+                [
                     'ru' => 'http://example.com/ru/catalog/product-' . $i,
                     'en' => 'http://example.com/en/catalog/product-' . $i,
-                ),
+                ],
                 $lastModified + $i,
                 Sitemap::DAILY,
                 0.8

@@ -1,0 +1,149 @@
+<?php
+namespace samdark\sitemap;
+
+use InvalidArgumentException;
+use RuntimeException;
+use XMLWriter;
+
+/**
+ * A class for generating Sitemap index (http://www.sitemaps.org/).
+ *
+ * @author Alexander Makarov <sam@rmcreative.ru>
+ */
+class Index
+{
+    use UrlEncoderTrait;
+    /**
+     * @var XMLWriter XML writer.
+     */
+    private $writer;
+
+    /**
+     * @var string Index file path.
+     */
+    private $filePath;
+
+    /**
+     * @var bool Whether to gzip the resulting file or not.
+     */
+    private $useGzip = false;
+
+    /**
+     * @param string $filePath Index file path.
+     */
+    public function __construct(string $filePath)
+    {
+        $this->filePath = $filePath;
+    }
+
+    /**
+     * @var ?string Path of the XML stylesheet.
+     */
+    private $stylesheet;
+
+    /**
+     * Creates new file.
+     */
+    private function createNewFile(): void
+    {
+        $this->writer = new XMLWriter();
+        $this->writer->openMemory();
+        $this->writer->startDocument('1.0', 'UTF-8');
+        // Use XML stylesheet, if available.
+        if ($this->stylesheet !== null) {
+            $this->writer->writePi('xml-stylesheet', "type=\"text/xsl\" href=\"" . $this->encodeUrl($this->stylesheet) . "\"");
+            $this->writer->writeRaw("\n");
+        }
+        $this->writer->setIndent(true);
+        $this->writer->startElement('sitemapindex');
+        $this->writer->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+    }
+
+    /**
+     * Adds sitemap link to the index file.
+     *
+     * @param string $location URL of the sitemap.
+     * @param integer|null $lastModified Unix timestamp of sitemap modification time.
+     * @throws InvalidArgumentException If the location is not a valid URL.
+     */
+    public function addSitemap(string $location, ?int $lastModified = null): void
+    {
+        // Encode the URL to handle international characters.
+        $location = $this->encodeUrl($location);
+
+        if (false === filter_var($location, FILTER_VALIDATE_URL)) {
+            throw new InvalidArgumentException(
+                "The location must be a valid URL. You have specified: $location."
+            );
+        }
+
+        if ($this->writer === null) {
+            $this->createNewFile();
+        }
+
+        $this->writer->startElement('sitemap');
+        $this->writer->writeElement('loc', $location);
+
+        if ($lastModified !== null) {
+            $this->writer->writeElement('lastmod', date('c', $lastModified));
+        }
+        $this->writer->endElement();
+    }
+
+    /**
+     * @return string Index file path.
+     */
+    public function getFilePath(): string
+    {
+        return $this->filePath;
+    }
+
+    /**
+     * Finishes writing.
+     */
+    public function write(): void
+    {
+        if ($this->writer === null) {
+            return;
+        }
+
+        $this->writer->endElement();
+        $this->writer->endDocument();
+        $filePath = $this->getFilePath();
+        if ($this->useGzip) {
+            $filePath = 'compress.zlib://' . $filePath;
+        }
+        file_put_contents($filePath, $this->writer->flush());
+    }
+
+    /**
+     * Sets whether the resulting file will be gzipped or not.
+     * @param bool $value Whether the resulting file should be gzipped.
+     * @throws RuntimeException When trying to enable gzip while zlib is not available.
+     */
+    public function setUseGzip(bool $value): void
+    {
+        if ($value && !extension_loaded('zlib')) {
+            // @codeCoverageIgnoreStart
+            throw new RuntimeException('Zlib extension must be installed to gzip the sitemap.');
+            // @codeCoverageIgnoreEnd
+        }
+        $this->useGzip = $value;
+    }
+
+    /**
+     * Sets stylesheet for the XML file.
+     * Default is to not generate XML-stylesheet tag.
+     * @param string $stylesheetUrl Stylesheet URL.
+     */
+    public function setStylesheet(string $stylesheetUrl): void
+    {
+        if (false === filter_var($stylesheetUrl, FILTER_VALIDATE_URL)) {
+            throw new InvalidArgumentException(
+                "The stylesheet URL is not valid. You have specified: \"$stylesheetUrl\"."
+            );
+        }
+
+        $this->stylesheet = $stylesheetUrl;
+    }
+}

@@ -1,18 +1,20 @@
 <?php
 namespace samdark\sitemap\tests;
 
+use DOMDocument;
+use finfo;
 use samdark\sitemap\Index;
 
 class IndexTest extends \PHPUnit\Framework\TestCase
 {
-    protected function assertIsValidIndex($fileName)
+    protected function assertIsValidIndex(string $fileName): void
     {
-        $xml = new \DOMDocument();
+        $xml = new DOMDocument();
         $xml->load($fileName);
         $this->assertTrue($xml->schemaValidate(__DIR__ . '/siteindex.xsd'));
     }
 
-    public function testWritingFile()
+    public function testWritingFile(): void
     {
         $fileName = __DIR__ . '/sitemap_index.xml';
         $index = new Index($fileName);
@@ -20,12 +22,21 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         $index->addSitemap('http://example.com/sitemap_2.xml', time());
         $index->write();
 
-        $this->assertTrue(file_exists($fileName));
+        $this->assertFileExists($fileName);
         $this->assertIsValidIndex($fileName);
         unlink($fileName);
     }
 
-    public function testLocationValidation()
+    public function testWritingEmptyIndexDoesNothing(): void
+    {
+        $fileName = __DIR__ . '/sitemap_index_empty.xml';
+        $index = new Index($fileName);
+        $index->write();
+
+        $this->assertFileDoesNotExist($fileName);
+    }
+
+    public function testLocationValidation(): void
     {
         $this->expectException('InvalidArgumentException');
 
@@ -36,7 +47,7 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         unlink($fileName);
     }
 
-    public function testStylesheetIsIncludedInOutput()
+    public function testStylesheetIsIncludedInOutput(): void
     {
         $fileName = __DIR__ . '/sitemap_index_stylesheet.xml';
         $index = new Index($fileName);
@@ -54,7 +65,7 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         unlink($fileName);
     }
 
-    public function testStylesheetInvalidUrlThrowsException()
+    public function testStylesheetInvalidUrlThrowsException(): void
     {
         $this->expectException('InvalidArgumentException');
 
@@ -62,7 +73,7 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         $index->setStylesheet('not-a-valid-url');
     }
 
-    public function testWritingFileGzipped()
+    public function testWritingFileGzipped(): void
     {
         $fileName = __DIR__ . '/sitemap_index.xml.gz';
         $index = new Index($fileName);
@@ -71,25 +82,25 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         $index->addSitemap('http://example.com/sitemap_2.xml', time());
         $index->write();
 
-        $this->assertTrue(file_exists($fileName));
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $this->assertFileExists($fileName);
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
         $this->assertMatchesRegularExpression('!application/(x-)?gzip!', $finfo->file($fileName));
         $this->assertIsValidIndex('compress.zlib://' . $fileName);
         unlink($fileName);
     }
 
-    public function testInternationalUrlEncoding()
+    public function testInternationalUrlEncoding(): void
     {
         $fileName = __DIR__ . '/sitemap_index_international.xml';
         $index = new Index($fileName);
 
-        // Arabic characters in path
+        // Arabic characters in path.
         $index->addSitemap('http://example.com/ar/العامل-الماهر/sitemap.xml');
 
-        // Already encoded URL should not be double-encoded
+        // Already encoded URL should not be double-encoded.
         $index->addSitemap('http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84/sitemap.xml');
 
-        // Query string with non-ASCII characters
+        // Query string with non-ASCII characters.
         $index->addSitemap('http://example.com/sitemap.xml?lang=中文');
 
         $index->write();
@@ -97,20 +108,20 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         $this->assertFileExists($fileName);
         $content = file_get_contents($fileName);
 
-        // Arabic text should be percent-encoded
+        // Arabic text should be percent-encoded.
         $this->assertStringContainsString(
             'http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84-%D8%A7%D9%84%D9%85%D8%A7%D9%87%D8%B1/sitemap.xml',
             $content
         );
 
-        // Already encoded URL should remain the same (no double-encoding)
+        // Already encoded URL should remain the same without double-encoding.
         $this->assertStringContainsString(
             'http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84/sitemap.xml',
             $content
         );
         $this->assertStringNotContainsString('%25D8', $content);
 
-        // Chinese query value should be percent-encoded
+        // Chinese query value should be percent-encoded.
         $this->assertStringContainsString(
             'http://example.com/sitemap.xml?lang=%E4%B8%AD%E6%96%87',
             $content
