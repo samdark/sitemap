@@ -215,6 +215,12 @@ EOF;
         file_put_contents($fileName, 'previous sitemap contents');
         chmod($fileName, 0444);
 
+        if (is_writable($fileName)) {
+            chmod($fileName, 0644);
+            unlink($fileName);
+            $this->markTestSkipped('Filesystem does not make the file unwritable with chmod(0444).');
+        }
+
         $exceptionCaught = false;
         try {
             $sitemap = new Sitemap($fileName);
@@ -222,8 +228,10 @@ EOF;
         } catch (\RuntimeException $e) {
             $exceptionCaught = true;
         } finally {
-            chmod($fileName, 0644);
-            unlink($fileName);
+            if (file_exists($fileName)) {
+                chmod($fileName, 0644);
+                unlink($fileName);
+            }
         }
 
         $this->assertTrue($exceptionCaught, 'Expected RuntimeException wasn\'t thrown.');
