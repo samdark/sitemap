@@ -2,11 +2,10 @@
 
 namespace samdark\sitemap;
 
-use DeflateContext;
 use RuntimeException;
 
 /**
- * Flushes buffer into file with incremental deflating data, available in PHP 7.0+
+ * Flushes buffer into file with incremental deflating data.
  */
 class DeflateWriter implements WriterInterface
 {
@@ -16,7 +15,8 @@ class DeflateWriter implements WriterInterface
     private $file = null;
 
     /**
-     * @var DeflateContext|null For writable incremental deflate context.
+     * @var resource|\DeflateContext|null For writable incremental deflate context.
+     * @phpstan-var \DeflateContext|null For writable incremental deflate context.
      */
     private $deflateContext = null;
 
@@ -56,7 +56,7 @@ class DeflateWriter implements WriterInterface
      * Deflate data in a deflate context and write it to the target file.
      *
      * @param string $data Data to write.
-     * @param int $flushMode zlib flush mode to use for writing.
+     * @param int $flushMode Zlib flush mode to use for writing.
      */
     private function write(string $data, int $flushMode): void
     {
@@ -76,7 +76,7 @@ class DeflateWriter implements WriterInterface
     /**
      * Store data in a deflate stream.
      *
-     * @param string $data
+     * @param string $data Data to write.
      */
     public function append(string $data): void
     {

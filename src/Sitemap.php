@@ -8,7 +8,7 @@ use Throwable;
 use XMLWriter;
 
 /**
- * A class for generating Sitemaps (http://www.sitemaps.org/)
+ * A class for generating Sitemaps (http://www.sitemaps.org/).
  *
  * @author Alexander Makarov <sam@rmcreative.ru>
  */
@@ -29,7 +29,7 @@ class Sitemap
     private $maxUrls = 50000;
 
     /**
-     * @var integer number of URLs added
+     * @var integer Number of URLs added.
      */
     private $urlsCount = 0;
 
@@ -39,12 +39,12 @@ class Sitemap
     private $maxBytes = 10485760;
 
     /**
-     * @var integer number of bytes already written to the current file, before compression
+     * @var integer Number of bytes already written to the current file, before compression.
      */
     private $byteCount = 0;
 
     /**
-     * @var string path to the file to be written
+     * @var string Path to the file to be written.
      */
     private $filePath;
 
@@ -54,7 +54,7 @@ class Sitemap
     private $stylesheet = null;
 
     /**
-     * @var integer number of files written
+     * @var integer Number of files written.
      */
     private $fileCount = 0;
 
@@ -64,19 +64,19 @@ class Sitemap
     private $writtenFilePaths = [];
 
     /**
-     * @var integer number of URLs to be kept in memory before writing it to file
+     * @var integer Number of URLs to be kept in memory before writing it to file.
      */
     private $bufferSize = 10;
 
     /**
-     * @var bool if XML should be indented
+     * @var bool If XML should be indented.
      */
     private $useIndent = true;
 
     /**
-     * @var bool if should XHTML namespace be specified
+     * @var bool If XHTML namespace should be specified.
      * Useful for multi-language sitemap to point crawler to alternate language page via xhtml:link tag.
-     * @see https://support.google.com/webmasters/answer/2620865?hl=en
+     * @see https://support.google.com/webmasters/answer/2620865?hl=en.
      */
     private $useXhtml;
 
@@ -112,7 +112,7 @@ class Sitemap
     private $formattedPriorities = [];
 
     /**
-     * @var bool whether to gzip the resulting files or not.
+     * @var bool Whether to gzip the resulting files or not.
      */
     private $useGzip = false;
 
@@ -122,15 +122,15 @@ class Sitemap
     private $writerBackend = null;
 
     /**
-     * @var ?XMLWriter
+     * @var ?XMLWriter XML writer.
      */
     private $writer = null;
 
     /**
-     * @param string $filePath path of the file to write to
-     * @param bool $useXhtml is XHTML namespace should be specified
+     * @param string $filePath Path of the file to write to.
+     * @param bool $useXhtml Whether XHTML namespace should be specified.
      *
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException If the target directory does not exist.
      */
     public function __construct(string $filePath, bool $useXhtml = false)
     {
@@ -146,7 +146,7 @@ class Sitemap
     }
 
     /**
-     * Get array of generated files.
+     * Gets array of generated files.
      * @return list<string> Generated files.
      */
     public function getWrittenFilePath(): array
@@ -188,10 +188,10 @@ class Sitemap
         $this->writer = new XMLWriter();
         $this->writer->openMemory();
         $this->writer->startDocument('1.0', 'UTF-8');
-        // Use XML stylesheet, if available
+        // Use XML stylesheet, if available.
         if ($this->stylesheet !== null) {
             $this->writer->writePi('xml-stylesheet', "type=\"text/xsl\" href=\"" . $this->stylesheet . "\"");
-            $this->writer->writeRaw("\n");            
+            $this->writer->writeRaw("\n");
         }
         $this->writer->setIndent($this->useIndent);
         $this->writer->startElement('urlset');
@@ -203,14 +203,14 @@ class Sitemap
         /*
          * XMLWriter does not give us many options, so we must make sure, that
          * the header was written correctly, and we can simply reuse any <url>
-         * elements that did not fit into the previous file. (See self::flush)
+         * elements that did not fit into the previous file. See self::flush.
          */
         $this->writer->text("\n");
         $this->flush(0);
     }
 
     /**
-     * Writes closing tags to current file
+     * Writes closing tags to current file.
      */
     private function finishFile(): void
     {
@@ -223,7 +223,7 @@ class Sitemap
         $this->writer->endElement();
         $this->writer->endDocument();
 
-        /* To prevent infinite recursion through flush */
+        /* Prevent infinite recursion through flush. */
         $this->urlsCount = 0;
 
         $this->flush(0);
@@ -235,7 +235,7 @@ class Sitemap
     }
 
     /**
-     * Finishes writing
+     * Finishes writing.
      */
     public function write(): void
     {
@@ -248,23 +248,23 @@ class Sitemap
     }
 
     /**
-     * Finishes writing when the object is destroyed
+     * Finishes writing when the object is destroyed.
      */
     public function __destruct()
     {
         try {
             $this->write();
         } catch (Throwable $e) {
-            // Exceptions must not propagate out of __destruct()
+            // Exceptions must not propagate out of __destruct().
         }
     }
 
     /**
-     * Flushes buffer into file
+     * Flushes buffer into file.
      *
-     * @param int $footSize Size of the remaining closing tags
-     * @return bool is new file created
-     * @throws OverflowException
+     * @param int $footSize Size of the remaining closing tags.
+     * @return bool Whether a new file was created.
+     * @throws OverflowException If the buffer size is too big for the file size limit.
      */
     private function flush(int $footSize = 10): bool
     {
@@ -275,12 +275,12 @@ class Sitemap
         }
 
         $isNewFileCreated = false;
-        /** @var string $data */
+        /** @var string $data Data flushed from XMLWriter. */
         $data = $this->writer->flush();
         $dataSize = mb_strlen($data, '8bit');
 
         /*
-         * Limit the file size of each single site map
+         * Limit the file size of each single site map.
          *
          * We use a heuristic of 10 Bytes for the remainder of the file,
          * i.e. </urlset> plus a new line.
@@ -308,11 +308,10 @@ class Sitemap
     }
 
     /**
-     * Takes a string and validates, if the string
-     * is a valid URL.
+     * Takes a string and validates if the string is a valid URL.
      *
-     * @param string $location
-     * @throws InvalidArgumentException
+     * @param string $location Location item URL.
+     * @throws InvalidArgumentException If the location is not a valid URL.
      */
     protected function validateLocation(string $location): void
     {
@@ -331,7 +330,7 @@ class Sitemap
      * @param string|null $changeFrequency Change frequency. Use one of self:: constants here.
      * @param string|null $priority Item's priority (0.0-1.0). Default `null` is equal to 0.5.
      *
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException If one of item values is invalid.
      */
     public function addItem($locations, ?int $lastModified = null, ?string $changeFrequency = null, ?string $priority = null): void
     {
@@ -382,9 +381,9 @@ class Sitemap
      * @param ?string $changeFrequency Change frequency. Use one of self:: constants here.
      * @param ?string $priority Item's priority (0.0-1.0). Default `null` is equal to 0.5.
      *
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException If one of item values is invalid.
      *
-     * @see addItem
+     * @see addItem.
      */
     private function addSingleLanguageItem(string $location, ?string $lastModified, ?string $changeFrequency, ?string $priority): void
     {
@@ -425,11 +424,11 @@ class Sitemap
      * @param array<string, string> $locations Locations. Array of language => link pairs.
      * @param ?string $lastModified Formatted last modification timestamp.
      * @param ?string $changeFrequency Change frequency. Use one of self:: constants here.
-     * @param ?string $priority item's priority (0.0-1.0). Default null is equal to 0.5.
+     * @param ?string $priority Item's priority (0.0-1.0). Default null is equal to 0.5.
      *
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException If one of item values is invalid.
      *
-     * @see addItem
+     * @see addItem.
      */
     private function addMultiLanguageItem(array $locations, ?string $lastModified, ?string $changeFrequency, ?string $priority): void
     {
@@ -477,7 +476,7 @@ class Sitemap
     }
 
     /**
-     * @param string|null $changeFrequency
+     * @param string|null $changeFrequency Change frequency to validate.
      */
     private function validateChangeFrequency(?string $changeFrequency): void
     {
@@ -491,8 +490,8 @@ class Sitemap
     }
 
     /**
-     * @param string $priority
-     * @return string
+     * @param string $priority Priority value.
+     * @return string Formatted priority value.
      */
     private function formatPriority(string $priority): string
     {
@@ -512,7 +511,7 @@ class Sitemap
 
 
     /**
-     * @return string path of currently opened file
+     * @return string Path of currently opened file.
      */
     private function getCurrentFilePath(): string
     {
@@ -522,9 +521,9 @@ class Sitemap
     /**
      * Hook for customizing the path of the currently opened file.
      *
-     * @param string $filePath base file path
-     * @param integer $fileCount number of files written
-     * @return string path of currently opened file
+     * @param string $filePath Base file path.
+     * @param integer $fileCount Number of files written.
+     * @return string Path of currently opened file.
      */
     protected function buildCurrentFilePath(string $filePath, int $fileCount): string
     {
@@ -533,7 +532,7 @@ class Sitemap
         }
 
         /**
-         * @var array{dirname: string, basename: string, extension: string, filename: string} $parts
+         * @var array{dirname: string, basename: string, extension: string, filename: string} $parts File path parts.
          */
         $parts = pathinfo($filePath);
         if ($parts['extension'] === 'gz') {
@@ -547,7 +546,7 @@ class Sitemap
     }
 
     /**
-     * Returns an array of URLs written
+     * Returns an array of URLs written.
      *
      * @param string $baseUrl Base URL of all the sitemaps written.
      * @return list<string> URLs of sitemaps written.
@@ -564,7 +563,7 @@ class Sitemap
     /**
      * Sets maximum number of URLs to write in a single file.
      * Default is 50000.
-     * @param integer $number
+     * @param integer $number Maximum number of URLs.
      */
     public function setMaxUrls(int $number): void
     {
@@ -574,7 +573,7 @@ class Sitemap
     /**
      * Sets maximum number of bytes to write in a single file.
      * Default is 10485760 or 10 MiB.
-     * @param integer $number
+     * @param integer $number Maximum number of bytes.
      */
     public function setMaxBytes(int $number): void
     {
@@ -585,7 +584,7 @@ class Sitemap
      * Sets number of URLs to be kept in memory before writing it to file.
      * Default is 10.
      *
-     * @param integer $number
+     * @param integer $number Buffer size.
      */
     public function setBufferSize(int $number): void
     {
@@ -597,7 +596,7 @@ class Sitemap
      * Sets if XML should be indented.
      * Default is true.
      *
-     * @param bool $value
+     * @param bool $value Whether XML should be indented.
      */
     public function setUseIndent(bool $value): void
     {
@@ -606,9 +605,9 @@ class Sitemap
 
     /**
      * Sets whether the resulting files will be gzipped or not.
-     * @param bool $value
-     * @throws RuntimeException when trying to enable gzip while zlib is not available or when trying to change
-     * setting when some items are already written
+     * @param bool $value Whether the resulting files should be gzipped.
+     * @throws RuntimeException When trying to enable gzip while zlib is not available or when trying to change
+     * setting when some items are already written.
      */
     public function setUseGzip(bool $value): void
     {

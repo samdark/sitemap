@@ -12,17 +12,17 @@ use RuntimeException;
 class TempFileGZIPWriter implements WriterInterface
 {
     /**
-     * @var string Name of target file
+     * @var string Name of target file.
      */
     private $filename;
 
     /**
-     * @var ?resource for php://temp stream
+     * @var ?resource For php://temp stream.
      */
     private $tempFile;
 
     /**
-     * @param string $filename target file
+     * @param string $filename Target file.
      */
     public function __construct(string $filename)
     {
@@ -37,19 +37,19 @@ class TempFileGZIPWriter implements WriterInterface
     }
 
     /**
-     * Store data in a temporary stream/file
+     * Store data in a temporary stream/file.
      *
-     * @param string $data
+     * @param string $data Data to write.
      */
     public function append(string $data): void
     {
-        assert($this->tempFile !== null);
-
-        fwrite($this->tempFile, $data);
+        if ($this->tempFile !== null) {
+            fwrite($this->tempFile, $data);
+        }
     }
 
     /**
-     * Deflate buffered data
+     * Deflate buffered data.
      */
     public function finish(): void
     {

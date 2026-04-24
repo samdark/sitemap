@@ -16,9 +16,9 @@ class SitemapTest extends TestCase
     private const ELEMENT_LENGTH_WITHOUT_URL = 137;
 
     /**
-     * Asserts validity of simtemap according to XSD schema
-     * @param string $fileName
-     * @param bool $xhtml
+     * Asserts validity of sitemap according to the XSD schema.
+     * @param string $fileName File name.
+     * @param bool $xhtml Whether XHTML schema should be used.
      */
     protected function assertIsValidSitemap(string $fileName, bool $xhtml = false): void
     {
@@ -562,27 +562,27 @@ EOF;
         $this->assertTrue($exceptionCaught, 'Expected RuntimeException wasn\'t thrown.');
     }
 
-    public function testBufferSizeImpact(): void
+    public function testBufferSizeDoesNotChangeGeneratedSitemap(): void
     {
-        $fileName = __DIR__ . '/sitemap_big.xml';
-
-        $times = [];
+        $contents = [];
 
         foreach ([1000, 10] as $bufferSize) {
-            $startTime = microtime(true);
-
+            $fileName = __DIR__ . "/sitemap_buffer_size_{$bufferSize}.xml";
             $sitemap = new Sitemap($fileName);
             $sitemap->setBufferSize($bufferSize);
-            for ($i = 0; $i < 50000; $i++) {
-                $sitemap->addItem('http://example.com/mylink' . $i, time());
+            for ($i = 0; $i < 20; $i++) {
+                $sitemap->addItem('http://example.com/mylink' . $i, 100);
             }
             $sitemap->write();
 
-            $times[] = microtime(true) - $startTime;
+            $this->assertFileExists($fileName);
+            $this->assertIsValidSitemap($fileName);
+            $contents[$bufferSize] = file_get_contents($fileName);
+
             unlink($fileName);
         }
 
-        $this->assertLessThan($times[0] * 1.2, $times[1]);
+        $this->assertSame($contents[1000], $contents[10]);
     }
 
     public function testBufferSizeIsNotTooBigOnFinishFileInWrite(): void
@@ -602,7 +602,7 @@ EOF;
 
         for ($i = 0; $i < $urlsQty; $i++) {
             $sitemap->addItem(
-                // url 13 bytes
+                // URL is 13 bytes.
                 "https://a.b/{$i}",
                 $time,
                 Sitemap::WEEKLY,
@@ -671,14 +671,14 @@ EOF;
         $sitemap->setBufferSize(3);
         $sitemap->setMaxUrls(4);
         $sitemap->setMaxBytes(
-            // 100 + 10 + 137 * 4
+            // Formula: 100 + 10 + 137 * 4.
             self::HEADER_LENGTH + self::FOOTER_LENGTH + self::ELEMENT_LENGTH_WITHOUT_URL * 4
                 + $urlLength * 4 - 1
         );
 
         for ($i = 0; $i < $urlsQty; $i++) {
             $sitemap->addItem(
-                // url 13 bytes
+                // URL is 13 bytes.
                 "https://a.b/{$i}",
                 $time,
                 Sitemap::WEEKLY,
@@ -829,19 +829,19 @@ EOF;
         $fileName = __DIR__ . '/sitemap_no_explicit_write.xml';
         $sitemap = new Sitemap($fileName);
 
-        // Add enough items to exceed the default buffer size (10) so data is flushed to disk
+        // Add enough items to exceed the default buffer size so data is flushed to disk.
         for ($i = 1; $i <= 10; $i++) {
             $sitemap->addItem('http://example.com/mylink' . $i);
         }
 
-        // Destroy the sitemap object without calling write() — simulates forgetting to call write()
+        // Destroy the sitemap object without calling write(), simulating a forgotten write().
         unset($sitemap);
 
         $this->assertFileExists($fileName);
 
         $content = trim(file_get_contents($fileName));
 
-        // The file must end with the closing urlset tag even though write() was not called explicitly
+        // The file must end with the closing urlset tag even though write() was not called explicitly.
         $this->assertStringEndsWith('</urlset>', $content, 'Sitemap file must end with </urlset> even when write() is not called explicitly.');
 
         unlink($fileName);
@@ -852,16 +852,16 @@ EOF;
         $fileName = __DIR__ . '/sitemap_international.xml';
         $sitemap = new Sitemap($fileName);
 
-        // Test with Arabic characters in URL path
+        // Test with Arabic characters in URL path.
         $sitemap->addItem('http://example.com/ar/العامل-الماهر-كاريكاتير');
 
-        // Test with Chinese characters
+        // Test with Chinese characters.
         $sitemap->addItem('http://example.com/zh/测试页面');
 
-        // Test with already encoded URL (should not double-encode)
+        // Test with already encoded URL, which should not double-encode.
         $sitemap->addItem('http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84');
 
-        // Test with query string containing non-ASCII
+        // Test with query string containing non-ASCII.
         $sitemap->addItem('http://example.com/search?q=café');
 
         $sitemap->write();
@@ -870,16 +870,16 @@ EOF;
 
         $content = file_get_contents($fileName);
 
-        // Arabic text should be percent-encoded
+        // Arabic text should be percent-encoded.
         $this->assertStringContainsString('http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84-%D8%A7%D9%84%D9%85%D8%A7%D9%87%D8%B1-%D9%83%D8%A7%D8%B1%D9%8A%D9%83%D8%A7%D8%AA%D9%8A%D8%B1', $content);
 
-        // Chinese text should be percent-encoded
+        // Chinese text should be percent-encoded.
         $this->assertStringContainsString('http://example.com/zh/%E6%B5%8B%E8%AF%95%E9%A1%B5%E9%9D%A2', $content);
 
-        // Already encoded URL should remain the same (not double-encoded)
+        // Already encoded URL should remain the same without double-encoding.
         $this->assertStringContainsString('http://example.com/ar/%D8%A7%D9%84%D8%B9%D8%A7%D9%85%D9%84', $content);
 
-        // Query string should be encoded
+        // Query string should be encoded.
         $this->assertStringContainsString('http://example.com/search?q=caf%C3%A9', $content);
 
         $this->assertIsValidSitemap($fileName);

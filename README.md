@@ -1,5 +1,4 @@
-Sitemap
-=======
+# Sitemap
 
 XML Sitemap and XML Sitemap Index builder.
 
@@ -10,8 +9,7 @@ XML Sitemap and XML Sitemap Index builder.
 ![Packagist Downloads](https://img.shields.io/packagist/dt/samdark/sitemap?style=flat-square&label=total%20downloads)
 ![GitHub](https://img.shields.io/github/license/samdark/sitemap?style=flat-square)
 
-Features
---------
+## Features
 
 - Create sitemap files: either regular or gzipped.
 - Create multi-language sitemap files.
@@ -20,94 +18,90 @@ Features
 - Automatically creates new file if either URL limit or file size limit is reached.
 - Fast and memory efficient.
 
-Installation
-------------
+## Installation
 
 Installation via Composer is very simple:
 
-```
+```sh
 composer require samdark/sitemap
 ```
 
-After that, make sure your application autoloads Composer classes by including
-`vendor/autoload.php`.
+After that, make sure your application autoloads Composer classes by including `vendor/autoload.php`.
 
-How to use it
--------------
+## How to use it
 
 ```php
 use samdark\sitemap\Sitemap;
 use samdark\sitemap\Index;
 
-// create sitemap
+// Create sitemap.
 $sitemap = new Sitemap(__DIR__ . '/sitemap.xml');
 
-// add some URLs
+// Add some URLs.
 $sitemap->addItem('http://example.com/mylink1');
 $sitemap->addItem('http://example.com/mylink2', time());
 $sitemap->addItem('http://example.com/mylink3', time(), Sitemap::HOURLY);
 $sitemap->addItem('http://example.com/mylink4', time(), Sitemap::DAILY, 0.3);
 
-// set sitemap stylesheet (see example-sitemap-stylesheet.xsl)
+// Set sitemap stylesheet. See example-sitemap-stylesheet.xsl.
 $sitemap->setStylesheet('http://example.com/css/sitemap.xsl');
 
-// write it
+// Write it.
 $sitemap->write();
 
-// get URLs of sitemaps written
+// Get URLs of sitemaps written.
 $sitemapFileUrls = $sitemap->getSitemapUrls('http://example.com/');
 
-// create sitemap for static files
+// Create sitemap for static files.
 $staticSitemap = new Sitemap(__DIR__ . '/sitemap_static.xml');
 
-// add some URLs
+// Add some URLs.
 $staticSitemap->addItem('http://example.com/about');
 $staticSitemap->addItem('http://example.com/tos');
 $staticSitemap->addItem('http://example.com/jobs');
 
-// set optional stylesheet (see example-sitemap-stylesheet.xsl)
+// Set optional stylesheet. See example-sitemap-stylesheet.xsl.
 $staticSitemap->setStylesheet('http://example.com/css/sitemap.xsl');
 
-// write it
+// Write it.
 $staticSitemap->write();
 
-// get URLs of sitemaps written
+// Get URLs of sitemaps written.
 $staticSitemapUrls = $staticSitemap->getSitemapUrls('http://example.com/');
 
-// create sitemap index file
+// Create sitemap index file.
 $index = new Index(__DIR__ . '/sitemap_index.xml');
 
-// set index stylesheet (see example in repo)
+// Set index stylesheet. See example in repo.
 $index->setStylesheet('http://example.com/css/sitemap.xsl');
 
-// add URLs
+// Add URLs.
 foreach ($sitemapFileUrls as $sitemapUrl) {
     $index->addSitemap($sitemapUrl);
 }
 
-// add more URLs
+// Add more URLs.
 foreach ($staticSitemapUrls as $sitemapUrl) {
     $index->addSitemap($sitemapUrl);
 }
 
-// write it
+// Write it.
 $index->write();
 ```
 
-Multi-language sitemap
-----------------------
+## Multi-language sitemap
 
 ```php
 use samdark\sitemap\Sitemap;
 
-// create sitemap
-// be sure to pass `true` as second parameter to specify XHTML namespace
+// Create sitemap.
+// Be sure to pass `true` as second parameter to specify XHTML namespace.
 $sitemap = new Sitemap(__DIR__ . '/sitemap_multi_language.xml', true);
 
-// Set URL limit to fit in default limit of 50000 (default limit / number of languages) 
+// Set URL limit to fit in default limit of 50000 (default limit / number of languages).
 $sitemap->setMaxUrls(25000);
 
-// add some URLs
+// Add some URLs.
 $sitemap->addItem('http://example.com/mylink1');
 
 $sitemap->addItem([
@@ -125,16 +119,15 @@ $sitemap->addItem([
     'en' => 'http://example.com/en/mylink4',
 ], time(), Sitemap::DAILY, 0.3);
 
-// set stylesheet (see example-sitemap-stylesheet.xsl)
+// Set stylesheet. See example-sitemap-stylesheet.xsl.
 $sitemap->setStylesheet('http://example.com/css/sitemap.xsl');
 
-// write it
+// Write it.
 $sitemap->write();
 
 ```
 
-Options
--------
+## Options
 
 There are methods to configure `Sitemap` instance:
  
@@ -157,25 +150,43 @@ There is a method to configure `Index` instance:
   Default is `false`. `zlib` extension must be enabled to use this feature.
 - `setStylesheet($string)`. Sets the `xml-stylesheet` tag. By default, tag is not generated. See example [example-sitemap-stylesheet.xsl](/example-sitemap-stylesheet.xsl) 
 
-Running tests
--------------
+## Running tests
 
-In order to run tests perform the following commands:
+In order to run tests perform the following command:
 
-```
-composer install
-./vendor/bin/phpunit
+```sh
+composer test
 ```
 
-Running benchmarks
-------------------
+## Running PHPStan
+
+In order to check code with PHPStan perform the following command:
+
+```sh
+composer phpstan
+```
+
+## Running Rector
+
+In order to check code with Rector perform the following command:
+
+```sh
+composer rector
+```
+
+In order to apply Rector changes run:
+
+```sh
+composer rector:fix
+```
+
+## Running benchmarks
 
 The benchmark suite uses PHPBench to measure typical sitemap generation
 workflows from the examples above for small, medium and large websites:
 content sitemap generation, static sitemap generation, multi-language sitemap
 generation and sitemap index generation.
 
-```
-composer install
+```sh
 composer bench
 ```

@@ -6,7 +6,7 @@ use RuntimeException;
 use XMLWriter;
 
 /**
- * A class for generating Sitemap index (http://www.sitemaps.org/)
+ * A class for generating Sitemap index (http://www.sitemaps.org/).
  *
  * @author Alexander Makarov <sam@rmcreative.ru>
  */
@@ -14,22 +14,22 @@ class Index
 {
     use UrlEncoderTrait;
     /**
-     * @var XMLWriter
+     * @var XMLWriter XML writer.
      */
     private $writer;
 
     /**
-     * @var string index file path
+     * @var string Index file path.
      */
     private $filePath;
 
     /**
-     * @var bool whether to gzip the resulting file or not
+     * @var bool Whether to gzip the resulting file or not.
      */
     private $useGzip = false;
 
     /**
-     * @param string $filePath index file path
+     * @param string $filePath Index file path.
      */
     public function __construct(string $filePath)
     {
@@ -42,7 +42,7 @@ class Index
     private $stylesheet;
 
     /**
-     * Creates new file
+     * Creates new file.
      */
     private function createNewFile(): void
     {
@@ -52,7 +52,7 @@ class Index
         // Use XML stylesheet, if available.
         if ($this->stylesheet !== null) {
             $this->writer->writePi('xml-stylesheet', "type=\"text/xsl\" href=\"" . $this->encodeUrl($this->stylesheet) . "\"");
-            $this->writer->writeRaw("\n");            
+            $this->writer->writeRaw("\n");
         }
         $this->writer->setIndent(true);
         $this->writer->startElement('sitemapindex');
@@ -60,15 +60,15 @@ class Index
     }
 
     /**
-     * Adds sitemap link to the index file
+     * Adds sitemap link to the index file.
      *
-     * @param string $location URL of the sitemap
-     * @param integer|null $lastModified unix timestamp of sitemap modification time
-     * @throws InvalidArgumentException
+     * @param string $location URL of the sitemap.
+     * @param integer|null $lastModified Unix timestamp of sitemap modification time.
+     * @throws InvalidArgumentException If the location is not a valid URL.
      */
     public function addSitemap(string $location, ?int $lastModified = null): void
     {
-        // Encode the URL to handle international characters
+        // Encode the URL to handle international characters.
         $location = $this->encodeUrl($location);
 
         if (false === filter_var($location, FILTER_VALIDATE_URL)) {
@@ -91,7 +91,7 @@ class Index
     }
 
     /**
-     * @return string index file path
+     * @return string Index file path.
      */
     public function getFilePath(): string
     {
@@ -99,7 +99,7 @@ class Index
     }
 
     /**
-     * Finishes writing
+     * Finishes writing.
      */
     public function write(): void
     {
@@ -118,8 +118,8 @@ class Index
 
     /**
      * Sets whether the resulting file will be gzipped or not.
-     * @param bool $value
-     * @throws RuntimeException when trying to enable gzip while zlib is not available
+     * @param bool $value Whether the resulting file should be gzipped.
+     * @throws RuntimeException When trying to enable gzip while zlib is not available.
      */
     public function setUseGzip(bool $value): void
     {
