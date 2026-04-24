@@ -31,7 +31,7 @@ class IndexTest extends \PHPUnit\Framework\TestCase
 
         $fileName = __DIR__ . '/sitemap.xml';
         $index = new Index($fileName);
-        $index->addSitemap('http://example.com:bad');
+        $index->addSitemap('http://example.com:bad/é');
 
         unlink($fileName);
     }
