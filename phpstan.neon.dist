@@ -1,11 +1,4 @@
 parameters:
     level: max
-    phpVersion: 70000
     paths:
-        - DeflateWriter.php
-        - Index.php
-        - PlainFileWriter.php
-        - Sitemap.php
-        - TempFileGZIPWriter.php
-        - UrlEncoderTrait.php
-        - WriterInterface.php
+        - src/

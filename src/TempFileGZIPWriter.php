@@ -3,6 +3,8 @@
 namespace samdark\sitemap;
 
 // @codeCoverageIgnoreStart
+use RuntimeException;
+
 /**
  * Flushes buffer into temporary stream and compresses stream into a file on finish.
  *
@@ -16,17 +18,21 @@ class TempFileGZIPWriter implements WriterInterface
     private $filename;
 
     /**
-     * @var resource for php://temp stream
+     * @var ?resource for php://temp stream
      */
     private $tempFile;
 
     /**
      * @param string $filename target file
      */
-    public function __construct($filename)
+    public function __construct(string $filename)
     {
         $this->filename = $filename;
-        $this->tempFile = fopen('php://temp/', 'wb');
+        $tempFile = fopen('php://temp/', 'wb');
+        if ($tempFile === false) {
+            throw new RuntimeException('Unable to open temp file.');
+        }
+        $this->tempFile = $tempFile;
     }
 
     /**
@@ -34,7 +40,7 @@ class TempFileGZIPWriter implements WriterInterface
      *
      * @param string $data
      */
-    public function append($data)
+    public function append(string $data): void
     {
         assert($this->tempFile !== null);
 
@@ -44,11 +50,17 @@ class TempFileGZIPWriter implements WriterInterface
     /**
      * Deflate buffered data
      */
-    public function finish()
+    public function finish(): void
     {
-        assert($this->tempFile !== null);
+        if ($this->tempFile === null) {
+            return;
+        }
 
         $file = fopen('compress.zlib://' . $this->filename, 'wb');
+        if ($file === false) {
+            throw new RuntimeException("Unable to open compress.zlib stream for \"$this->filename\".");
+        }
+
         rewind($this->tempFile);
         stream_copy_to_stream($this->tempFile, $file);
 

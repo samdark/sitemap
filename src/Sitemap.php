@@ -15,13 +15,13 @@ use XMLWriter;
 class Sitemap
 {
     use UrlEncoderTrait;
-    const ALWAYS = 'always';
-    const HOURLY = 'hourly';
-    const DAILY = 'daily';
-    const WEEKLY = 'weekly';
-    const MONTHLY = 'monthly';
-    const YEARLY = 'yearly';
-    const NEVER = 'never';
+    public const ALWAYS = 'always';
+    public const HOURLY = 'hourly';
+    public const DAILY = 'daily';
+    public const WEEKLY = 'weekly';
+    public const MONTHLY = 'monthly';
+    public const YEARLY = 'yearly';
+    public const NEVER = 'never';
 
     /**
      * @var integer Maximum allowed number of URLs in a single file.
@@ -49,9 +49,9 @@ class Sitemap
     private $filePath;
 
     /**
-     * @var string path of the XML stylesheet
+     * @var ?string Path of the XML stylesheet.
      */
-    private $stylesheet;
+    private $stylesheet = null;
 
     /**
      * @var integer number of files written
@@ -59,7 +59,7 @@ class Sitemap
     private $fileCount = 0;
 
     /**
-     * @var array path of files written
+     * @var list<string> Paths of files written.
      */
     private $writtenFilePaths = [];
 
@@ -81,7 +81,7 @@ class Sitemap
     private $useXhtml;
 
     /**
-     * @var array valid values for frequency parameter
+     * @var list<string> Valid values for frequency parameter.
      */
     private $validFrequencies = [
         self::ALWAYS,
@@ -90,11 +90,11 @@ class Sitemap
         self::WEEKLY,
         self::MONTHLY,
         self::YEARLY,
-        self::NEVER
+        self::NEVER,
     ];
 
     /**
-     * @var array valid values for frequency parameter as map
+     * @var array<string, true> Valid values for frequency parameter as map.
      */
     private $validFrequenciesMap = [
         self::ALWAYS => true,
@@ -103,28 +103,28 @@ class Sitemap
         self::WEEKLY => true,
         self::MONTHLY => true,
         self::YEARLY => true,
-        self::NEVER => true
+        self::NEVER => true,
     ];
 
     /**
-     * @var array formatted priority values
+     * @var array<string, string> Formatted priority values.
      */
     private $formattedPriorities = [];
 
     /**
-     * @var bool whether to gzip the resulting files or not
+     * @var bool whether to gzip the resulting files or not.
      */
     private $useGzip = false;
 
     /**
-     * @var WriterInterface that does the actual writing
+     * @var ?WriterInterface That does the actual writing.
      */
-    private $writerBackend;
+    private $writerBackend = null;
 
     /**
-     * @var XMLWriter
+     * @var ?XMLWriter
      */
-    private $writer;
+    private $writer = null;
 
     /**
      * @param string $filePath path of the file to write to
@@ -132,7 +132,7 @@ class Sitemap
      *
      * @throws InvalidArgumentException
      */
-    public function __construct($filePath, $useXhtml = false)
+    public function __construct(string $filePath, bool $useXhtml = false)
     {
         $dir = dirname($filePath);
         if (!is_dir($dir)) {
@@ -146,19 +146,19 @@ class Sitemap
     }
 
     /**
-     * Get array of generated files
-     * @return array
+     * Get array of generated files.
+     * @return list<string> Generated files.
      */
-    public function getWrittenFilePath()
+    public function getWrittenFilePath(): array
     {
         return $this->writtenFilePaths;
     }
     
     /**
-     * Creates new file
-     * @throws RuntimeException if file is not writeable
+     * Creates new file.
+     * @throws RuntimeException If file is not writeable.
      */
-    private function createNewFile()
+    private function createNewFile(): void
     {
         $this->fileCount++;
         $filePath = $this->getCurrentFilePath();
@@ -166,11 +166,11 @@ class Sitemap
 
         if (file_exists($filePath)) {
             $filePath = realpath($filePath);
-            if (is_writable($filePath)) {
-                unlink($filePath);
-            } else {
+            if ($filePath === false || !is_writable($filePath)) {
                 throw new RuntimeException("File \"$filePath\" is not writable.");
             }
+
+            unlink($filePath);
         }
 
         if ($this->useGzip) {
@@ -189,7 +189,7 @@ class Sitemap
         $this->writer->openMemory();
         $this->writer->startDocument('1.0', 'UTF-8');
         // Use XML stylesheet, if available
-        if (isset($this->stylesheet)) {
+        if ($this->stylesheet !== null) {
             $this->writer->writePi('xml-stylesheet', "type=\"text/xsl\" href=\"" . $this->stylesheet . "\"");
             $this->writer->writeRaw("\n");            
         }
@@ -212,33 +212,39 @@ class Sitemap
     /**
      * Writes closing tags to current file
      */
-    private function finishFile()
+    private function finishFile(): void
     {
-        if ($this->writer !== null) {
-            $this->writer->endElement();
-            $this->writer->endDocument();
-
-            /* To prevent infinite recursion through flush */
-            $this->urlsCount = 0;
-
-            $this->flush(0);
-            $this->writerBackend->finish();
-            $this->writerBackend = null;
-
-            $this->byteCount = 0;
-            $this->writer = null;
+        if ($this->writer === null || $this->writerBackend === null) {
+            // @codeCoverageIgnoreStart
+            return;
+            // @codeCoverageIgnoreEnd
         }
+
+        $this->writer->endElement();
+        $this->writer->endDocument();
+
+        /* To prevent infinite recursion through flush */
+        $this->urlsCount = 0;
+
+        $this->flush(0);
+        $this->writerBackend->finish();
+        $this->writerBackend = null;
+
+        $this->byteCount = 0;
+        $this->writer = null;
     }
 
     /**
      * Finishes writing
      */
-    public function write()
+    public function write(): void
     {
-        if ($this->writer !== null) {
-            $this->flush();
-            $this->finishFile();
+        if ($this->writer === null) {
+            return;
         }
+
+        $this->flush();
+        $this->finishFile();
     }
 
     /**
@@ -260,10 +266,17 @@ class Sitemap
      * @return bool is new file created
      * @throws OverflowException
      */
-    private function flush($footSize = 10)
+    private function flush(int $footSize = 10): bool
     {
+        if ($this->writer === null || $this->writerBackend === null) {
+            // @codeCoverageIgnoreStart
+            return false;
+            // @codeCoverageIgnoreEnd
+        }
+
         $isNewFileCreated = false;
-        $data = $this->writer->flush(true);
+        /** @var string $data */
+        $data = $this->writer->flush();
         $dataSize = mb_strlen($data, '8bit');
 
         /*
@@ -281,7 +294,14 @@ class Sitemap
             $isNewFileCreated = true;
         }
 
-        $this->writerBackend->append($data);
+        $writerBackend = $this->writerBackend;
+        if ($writerBackend === null) {
+            // @codeCoverageIgnoreStart
+            throw new RuntimeException('Writer backend was not initialized.');
+            // @codeCoverageIgnoreEnd
+        }
+
+        $writerBackend->append($data);
         $this->byteCount += $dataSize;
 
         return $isNewFileCreated;
@@ -289,15 +309,16 @@ class Sitemap
 
     /**
      * Takes a string and validates, if the string
-     * is a valid url
+     * is a valid URL.
      *
      * @param string $location
      * @throws InvalidArgumentException
      */
-    protected function validateLocation($location) {
+    protected function validateLocation(string $location): void
+    {
         if (!$this->isValidAsciiHttpLocation($location) && false === filter_var($location, FILTER_VALIDATE_URL)) {
             throw new InvalidArgumentException(
-                "The location must be a valid URL. You have specified: {$location}."
+                "The location must be a valid URL. You have specified: $location."
             );
         }
     }
@@ -306,7 +327,7 @@ class Sitemap
      * @param string $location
      * @return bool
      */
-    private function isValidAsciiHttpLocation($location)
+    private function isValidAsciiHttpLocation(string $location): bool
     {
         return preg_match(
             '~^https?://[A-Za-z\d](?:[A-Za-z\d.-]*[A-Za-z\d])?(?::\d+)?(?:/\S*)?(?:\?[^\s#]*)?(?:#\S*)?$~',
@@ -315,19 +336,19 @@ class Sitemap
     }
 
     /**
-     * Adds a new item to sitemap
+     * Adds a new item to sitemap.
      *
-     * @param string|array $location location item URL
-     * @param integer $lastModified last modification timestamp
-     * @param string $changeFrequency change frequency. Use one of self:: constants here
-     * @param string $priority item's priority (0.0-1.0). Default null is equal to 0.5
+     * @param string|array<string, string> $locations Location item URL(s).
+     * @param integer|null $lastModified Last modification timestamp.
+     * @param string|null $changeFrequency Change frequency. Use one of self:: constants here.
+     * @param string|null $priority Item's priority (0.0-1.0). Default `null` is equal to 0.5.
      *
      * @throws InvalidArgumentException
      */
-    public function addItem($location, $lastModified = null, $changeFrequency = null, $priority = null)
+    public function addItem($locations, ?int $lastModified = null, ?string $changeFrequency = null, ?string $priority = null): void
     {
-        $isMultiLanguage = is_array($location);
-        $delta = $isMultiLanguage ? count($location) : 1;
+        $isMultiLanguage = is_array($locations);
+        $delta = $isMultiLanguage ? count($locations) : 1;
         if ($lastModified !== null) {
             $lastModified = date('c', $lastModified);
         }
@@ -350,9 +371,9 @@ class Sitemap
         }
 
         if ($isMultiLanguage) {
-            $this->addMultiLanguageItem($location, $lastModified, $changeFrequency, $priority);
+            $this->addMultiLanguageItem($locations, $lastModified, $changeFrequency, $priority);
         } else {
-            $this->addSingleLanguageItem($location, $lastModified, $changeFrequency, $priority);
+            $this->addSingleLanguageItem($locations, $lastModified, $changeFrequency, $priority);
         }
 
         $prevCount = $this->urlsCount;
@@ -368,57 +389,71 @@ class Sitemap
 
 
     /**
-     * Adds a new single item to sitemap
+     * Adds a new single item to sitemap.
      *
-     * @param string $location location item URL
-     * @param integer $lastModified last modification timestamp
-     * @param float $changeFrequency change frequency. Use one of self:: constants here
-     * @param string $priority item's priority (0.0-1.0). Default null is equal to 0.5
+     * @param string $location Location item URL.
+     * @param ?string $lastModified Formatted last modification timestamp.
+     * @param ?string $changeFrequency Change frequency. Use one of self:: constants here.
+     * @param ?string $priority Item's priority (0.0-1.0). Default `null` is equal to 0.5.
      *
      * @throws InvalidArgumentException
      *
      * @see addItem
      */
-    private function addSingleLanguageItem($location, $lastModified, $changeFrequency, $priority)
+    private function addSingleLanguageItem(string $location, ?string $lastModified, ?string $changeFrequency, ?string $priority): void
     {
+        $writer = $this->writer;
+        if ($writer === null) {
+            // @codeCoverageIgnoreStart
+            return;
+            // @codeCoverageIgnoreEnd
+        }
+
         $location = $this->encodeUrl($location);
 
         $this->validateLocation($location);
 
 
-        $this->writer->startElement('url');
+        $writer->startElement('url');
 
-        $this->writer->writeElement('loc', $location);
+        $writer->writeElement('loc', $location);
 
         if ($lastModified !== null) {
-            $this->writer->writeElement('lastmod', $lastModified);
+            $writer->writeElement('lastmod', $lastModified);
         }
 
         if ($changeFrequency !== null) {
-            $this->writer->writeElement('changefreq', $changeFrequency);
+            $writer->writeElement('changefreq', $changeFrequency);
         }
 
         if ($priority !== null) {
-            $this->writer->writeElement('priority', $priority);
+            $writer->writeElement('priority', $priority);
         }
 
-        $this->writer->endElement();
+        $writer->endElement();
     }
 
     /**
-     * Adds a multi-language item, based on multiple locations with alternate hrefs to sitemap
+     * Adds a multi-language item, based on multiple locations with alternate hrefs to sitemap.
      *
-     * @param array $locations array of language => link pairs
-     * @param integer $lastModified last modification timestamp
-     * @param float $changeFrequency change frequency. Use one of self:: constants here
-     * @param string $priority item's priority (0.0-1.0). Default null is equal to 0.5
+     * @param array<string, string> $locations Locations. Array of language => link pairs.
+     * @param ?string $lastModified Formatted last modification timestamp.
+     * @param ?string $changeFrequency Change frequency. Use one of self:: constants here.
+     * @param ?string $priority item's priority (0.0-1.0). Default null is equal to 0.5.
      *
      * @throws InvalidArgumentException
      *
      * @see addItem
      */
-    private function addMultiLanguageItem($locations, $lastModified, $changeFrequency, $priority)
+    private function addMultiLanguageItem(array $locations, ?string $lastModified, ?string $changeFrequency, ?string $priority): void
     {
+        $writer = $this->writer;
+        if ($writer === null) {
+            // @codeCoverageIgnoreStart
+            return;
+            // @codeCoverageIgnoreEnd
+        }
+
         $encodedLocations = [];
         foreach ($locations as $language => $url) {
             $encodedUrl = $this->encodeUrl($url);
@@ -426,65 +461,64 @@ class Sitemap
             $encodedLocations[$language] = $encodedUrl;
         }
 
-        foreach ($encodedLocations as $language => $url) {
-            $this->writer->startElement('url');
+        foreach ($encodedLocations as $url) {
+            $writer->startElement('url');
 
-            $this->writer->writeElement('loc', $url);
+            $writer->writeElement('loc', $url);
 
             if ($lastModified !== null) {
-                $this->writer->writeElement('lastmod', $lastModified);
+                $writer->writeElement('lastmod', $lastModified);
             }
 
             if ($changeFrequency !== null) {
-                $this->writer->writeElement('changefreq', $changeFrequency);
+                $writer->writeElement('changefreq', $changeFrequency);
             }
 
             if ($priority !== null) {
-                $this->writer->writeElement('priority', $priority);
+                $writer->writeElement('priority', $priority);
             }
 
             foreach ($encodedLocations as $hreflang => $href) {
-
-                $this->writer->startElement('xhtml:link');
-                $this->writer->writeAttribute('rel', 'alternate');
-                $this->writer->writeAttribute('hreflang', $hreflang);
-                $this->writer->writeAttribute('href', $href);
-                $this->writer->endElement();
+                $writer->startElement('xhtml:link');
+                $writer->writeAttribute('rel', 'alternate');
+                $writer->writeAttribute('hreflang', $hreflang);
+                $writer->writeAttribute('href', $href);
+                $writer->endElement();
             }
 
-            $this->writer->endElement();
+            $writer->endElement();
         }
     }
 
     /**
      * @param string|null $changeFrequency
      */
-    private function validateChangeFrequency($changeFrequency)
+    private function validateChangeFrequency(?string $changeFrequency): void
     {
         if (!isset($this->validFrequenciesMap[$changeFrequency])) {
             throw new InvalidArgumentException(
                 'Please specify valid changeFrequency. Valid values are: '
                 . implode(', ', $this->validFrequencies)
-                . ". You have specified: {$changeFrequency}."
+                . ". You have specified: $changeFrequency."
             );
         }
     }
 
     /**
-     * @param string|null $priority
-     * @return string|null
+     * @param string $priority
+     * @return string
      */
-    private function formatPriority($priority)
+    private function formatPriority(string $priority): string
     {
         if (!is_numeric($priority) || $priority < 0 || $priority > 1) {
             throw new InvalidArgumentException(
-                "Please specify valid priority. Valid values range from 0.0 to 1.0. You have specified: {$priority}."
+                "Please specify valid priority. Valid values range from 0.0 to 1.0. You have specified: \"$priority\"."
             );
         }
 
-        $key = (string)$priority;
-        if (!isset($this->formattedPriorities[$key])) {
-            $this->formattedPriorities[$key] = number_format($priority, 1, '.', ',');
+        $key = 'priority:' . $priority;
+        if (!array_key_exists($key, $this->formattedPriorities)) {
+            $this->formattedPriorities[$key] = number_format((float)$priority, 1);
         }
 
         return $this->formattedPriorities[$key];
@@ -494,7 +528,7 @@ class Sitemap
     /**
      * @return string path of currently opened file
      */
-    private function getCurrentFilePath()
+    private function getCurrentFilePath(): string
     {
         return $this->buildCurrentFilePath($this->filePath, $this->fileCount);
     }
@@ -506,12 +540,15 @@ class Sitemap
      * @param integer $fileCount number of files written
      * @return string path of currently opened file
      */
-    protected function buildCurrentFilePath($filePath, $fileCount)
+    protected function buildCurrentFilePath(string $filePath, int $fileCount): string
     {
         if ($fileCount < 2) {
             return $filePath;
         }
 
+        /**
+         * @var array{dirname: string, basename: string, extension: string, filename: string} $parts
+         */
         $parts = pathinfo($filePath);
         if ($parts['extension'] === 'gz') {
             $filenameParts = pathinfo($parts['filename']);
@@ -526,10 +563,10 @@ class Sitemap
     /**
      * Returns an array of URLs written
      *
-     * @param string $baseUrl base URL of all the sitemaps written
-     * @return array URLs of sitemaps written
+     * @param string $baseUrl Base URL of all the sitemaps written.
+     * @return list<string> URLs of sitemaps written.
      */
-    public function getSitemapUrls($baseUrl)
+    public function getSitemapUrls(string $baseUrl): array
     {
         $urls = [];
         foreach ($this->writtenFilePaths as $file) {
@@ -543,9 +580,9 @@ class Sitemap
      * Default is 50000.
      * @param integer $number
      */
-    public function setMaxUrls($number)
+    public function setMaxUrls(int $number): void
     {
-        $this->maxUrls = (int)$number;
+        $this->maxUrls = $number;
     }
 
     /**
@@ -553,9 +590,9 @@ class Sitemap
      * Default is 10485760 or 10 MiB.
      * @param integer $number
      */
-    public function setMaxBytes($number)
+    public function setMaxBytes(int $number): void
     {
-        $this->maxBytes = (int)$number;
+        $this->maxBytes = $number;
     }
 
     /**
@@ -564,9 +601,9 @@ class Sitemap
      *
      * @param integer $number
      */
-    public function setBufferSize($number)
+    public function setBufferSize(int $number): void
     {
-        $this->bufferSize = (int)$number;
+        $this->bufferSize = $number;
     }
 
 
@@ -576,9 +613,9 @@ class Sitemap
      *
      * @param bool $value
      */
-    public function setUseIndent($value)
+    public function setUseIndent(bool $value): void
     {
-        $this->useIndent = (bool)$value;
+        $this->useIndent = $value;
     }
 
     /**
@@ -587,14 +624,14 @@ class Sitemap
      * @throws RuntimeException when trying to enable gzip while zlib is not available or when trying to change
      * setting when some items are already written
      */
-    public function setUseGzip($value)
+    public function setUseGzip(bool $value): void
     {
         if ($value && !extension_loaded('zlib')) {
             // @codeCoverageIgnoreStart
             throw new RuntimeException('Zlib extension must be enabled to gzip the sitemap.');
             // @codeCoverageIgnoreEnd
         }
-        if ($this->writerBackend !== null && $value != $this->useGzip) {
+        if ($this->writerBackend !== null && $value !== $this->useGzip) {
             throw new RuntimeException('Cannot change the gzip value once items have been added to the sitemap.');
         }
         $this->useGzip = $value;
@@ -605,7 +642,7 @@ class Sitemap
      * Default is to not generate XML stylesheet tag.
      * @param string $stylesheetUrl Stylesheet URL.
      */
-    public function setStylesheet($stylesheetUrl)
+    public function setStylesheet(string $stylesheetUrl): void
     {
         if (false === filter_var($stylesheetUrl, FILTER_VALIDATE_URL)) {
             throw new InvalidArgumentException(

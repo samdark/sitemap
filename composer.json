@@ -18,8 +18,11 @@
         "source": "https://github.com/samdark/sitemap"
     },
     "require": {
-        "php": ">=7.0",
+        "php": ">=7.1",
         "ext-xmlwriter": "*"
+    },
+    "suggest": {
+        "ext-zlib": "For gzipped sitemaps"
     },
     "scripts": {
        "test" : "@php vendor/bin/phpunit tests",
@@ -36,7 +39,12 @@
     },
     "autoload": {
         "psr-4": {
-            "samdark\\sitemap\\": ""
+            "samdark\\sitemap\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "samdark\\sitemap\\tests\\": "tests/"
         }
     }
 }

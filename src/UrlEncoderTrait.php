@@ -15,7 +15,7 @@ trait UrlEncoderTrait
      * @param string $url the URL to encode
      * @return string the encoded URL
      */
-    protected function encodeUrl($url)
+    protected function encodeUrl(string $url): string
     {
         if (!preg_match('/[^\x00-\x7F]/', $url)) {
             return $url;
@@ -71,7 +71,7 @@ trait UrlEncoderTrait
             $encodedParts = [];
             foreach ($parts as $part) {
                 if (strpos($part, '=') !== false) {
-                    list($key, $value) = explode('=', $part, 2);
+                    [$key, $value] = explode('=', $part, 2);
                     $encodedParts[] = $this->encodeNonAscii($key) . '=' . $this->encodeNonAscii($value);
                 } else {
                     $encodedParts[] = $this->encodeNonAscii($part);
@@ -95,11 +95,14 @@ trait UrlEncoderTrait
      * @param string $value the string to encode
      * @return string
      */
-    private function encodeNonAscii($value)
+    private function encodeNonAscii(string $value): string
     {
+        /**
+         * @var string
+         */
         return preg_replace_callback(
             '/[^\x00-\x7F]+/',
-            function ($matches) {
+            static function ($matches) {
                 return rawurlencode($matches[0]);
             },
             $value

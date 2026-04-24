@@ -1,18 +1,20 @@
 <?php
 namespace samdark\sitemap\tests;
 
+use DOMDocument;
+use finfo;
 use samdark\sitemap\Index;
 
 class IndexTest extends \PHPUnit\Framework\TestCase
 {
-    protected function assertIsValidIndex($fileName)
+    protected function assertIsValidIndex(string $fileName): void
     {
-        $xml = new \DOMDocument();
+        $xml = new DOMDocument();
         $xml->load($fileName);
         $this->assertTrue($xml->schemaValidate(__DIR__ . '/siteindex.xsd'));
     }
 
-    public function testWritingFile()
+    public function testWritingFile(): void
     {
         $fileName = __DIR__ . '/sitemap_index.xml';
         $index = new Index($fileName);
@@ -20,12 +22,12 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         $index->addSitemap('http://example.com/sitemap_2.xml', time());
         $index->write();
 
-        $this->assertTrue(file_exists($fileName));
+        $this->assertFileExists($fileName);
         $this->assertIsValidIndex($fileName);
         unlink($fileName);
     }
 
-    public function testLocationValidation()
+    public function testLocationValidation(): void
     {
         $this->expectException('InvalidArgumentException');
 
@@ -36,7 +38,7 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         unlink($fileName);
     }
 
-    public function testStylesheetIsIncludedInOutput()
+    public function testStylesheetIsIncludedInOutput(): void
     {
         $fileName = __DIR__ . '/sitemap_index_stylesheet.xml';
         $index = new Index($fileName);
@@ -54,7 +56,7 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         unlink($fileName);
     }
 
-    public function testStylesheetInvalidUrlThrowsException()
+    public function testStylesheetInvalidUrlThrowsException(): void
     {
         $this->expectException('InvalidArgumentException');
 
@@ -62,7 +64,7 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         $index->setStylesheet('not-a-valid-url');
     }
 
-    public function testWritingFileGzipped()
+    public function testWritingFileGzipped(): void
     {
         $fileName = __DIR__ . '/sitemap_index.xml.gz';
         $index = new Index($fileName);
@@ -71,14 +73,14 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         $index->addSitemap('http://example.com/sitemap_2.xml', time());
         $index->write();
 
-        $this->assertTrue(file_exists($fileName));
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $this->assertFileExists($fileName);
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
         $this->assertMatchesRegularExpression('!application/(x-)?gzip!', $finfo->file($fileName));
         $this->assertIsValidIndex('compress.zlib://' . $fileName);
         unlink($fileName);
     }
 
-    public function testInternationalUrlEncoding()
+    public function testInternationalUrlEncoding(): void
     {
         $fileName = __DIR__ . '/sitemap_index_international.xml';
         $index = new Index($fileName);
