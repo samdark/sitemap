@@ -35,8 +35,8 @@
     "require-dev": {
         "phpunit/phpunit": "^9.0",
         "phpbench/phpbench": "~1.0.0",
-        "phpstan/phpstan": "^2.1",
-        "rector/rector": "^2.4"
+        "phpstan/phpstan": "^1.12.5",
+        "rector/rector": "^1.2.10"
     },
     "autoload": {
         "psr-4": {
