@@ -166,3 +166,16 @@ In order to run tests perform the following commands:
 composer install
 ./vendor/bin/phpunit
 ```
+
+Running benchmarks
+------------------
+
+The benchmark suite uses PHPBench to measure typical sitemap generation
+workflows from the examples above for small, medium and large websites:
+content sitemap generation, static sitemap generation, multi-language sitemap
+generation and sitemap index generation.
+
+```
+composer install
+composer bench
+```

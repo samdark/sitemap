@@ -1,0 +1,32 @@
+{
+    "runner.bootstrap": "vendor/autoload.php",
+    "runner.path": "benchmarks",
+    "runner.file_pattern": "*Bench.php",
+    "runner.executor": "remote",
+    "runner.php_config": {
+        "memory_limit": "1G",
+        "xdebug.mode": "off"
+    },
+    "runner.iterations": 8,
+    "runner.revs": 3,
+    "runner.warmup": 1,
+    "runner.retry_threshold": 5,
+    "runner.time_unit": "milliseconds",
+    "report.generators": {
+        "sitemap": {
+            "generator": "expression",
+            "cols": [
+                "benchmark",
+                "subject",
+                "revs",
+                "its",
+                "mem_peak",
+                "best",
+                "mean",
+                "mode",
+                "worst",
+                "rstdev"
+            ]
+        }
+    }
+}

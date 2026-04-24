@@ -1,4 +1,3 @@
-
 {
     "name": "samdark/sitemap",
     "description": "Sitemap and sitemap index builder",
@@ -23,10 +22,12 @@
         "ext-xmlwriter": "*"
     },
     "scripts": {
-       "test" : "@php vendor/bin/phpunit tests"  
+       "test" : "@php vendor/bin/phpunit tests",
+       "bench" : "@php vendor/bin/phpbench run --report=sitemap"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.0"
+        "phpunit/phpunit": "^9.0",
+        "phpbench/phpbench": "~1.0.0"
     },
     "autoload": {
         "psr-4": {
