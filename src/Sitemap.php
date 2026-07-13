@@ -463,12 +463,14 @@ class Sitemap
                 $writer->writeElement('priority', $priority);
             }
 
-            foreach ($encodedLocations as $hreflang => $href) {
-                $writer->startElement('xhtml:link');
-                $writer->writeAttribute('rel', 'alternate');
-                $writer->writeAttribute('hreflang', $hreflang);
-                $writer->writeAttribute('href', $href);
-                $writer->endElement();
+            if ($this->useXhtml) {
+                foreach ($encodedLocations as $hreflang => $href) {
+                    $writer->startElement('xhtml:link');
+                    $writer->writeAttribute('rel', 'alternate');
+                    $writer->writeAttribute('hreflang', $hreflang);
+                    $writer->writeAttribute('href', $href);
+                    $writer->endElement();
+                }
             }
 
             $writer->endElement();
