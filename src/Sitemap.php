@@ -387,7 +387,7 @@ class Sitemap
             $this->createNewFile();
         }
 
-        $encodedImages = $this->validateAndEncodeImages($images);
+        $encodedImages = $images === [] ? [] : $this->validateAndEncodeImages($images);
 
         if ($isMultiLanguage) {
             $this->addMultiLanguageItem($locations, $formattedLastModified, $changeFrequency, $priority, $encodedImages);
@@ -450,7 +450,9 @@ class Sitemap
             $writer->writeElement('priority', $priority);
         }
 
-        $this->addImages($writer, $images);
+        if ($images !== []) {
+            $this->addImages($writer, $images);
+        }
 
         $writer->endElement();
     }
@@ -511,7 +513,9 @@ class Sitemap
                 }
             }
 
-            $this->addImages($writer, $images);
+            if ($images !== []) {
+                $this->addImages($writer, $images);
+            }
 
             $writer->endElement();
         }
