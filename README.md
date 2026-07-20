@@ -13,6 +13,7 @@ XML Sitemap and XML Sitemap Index builder.
 
 - Create sitemap files: either regular or gzipped.
 - Create multi-language sitemap files.
+- Create image sitemap entries.
 - Create sitemap index files.
 - Use custom stylesheet.
 - Automatically creates new file if either URL limit or file size limit is reached.
@@ -88,6 +89,24 @@ foreach ($staticSitemapUrls as $sitemapUrl) {
 
 // Write it.
 $index->write();
+```
+
+## Image sitemap
+
+Pass image URLs as the fifth argument of `addItem()`. Each image URL is encoded
+and validated before it is written. A URL can have up to 1000 images.
+
+```php
+$sitemap->addItem(
+    'http://example.com/page-with-images',
+    time(),
+    Sitemap::WEEKLY,
+    1,
+    [
+        'http://example.com/images/1.jpg',
+        'http://example.com/images/2.jpg',
+    ]
+);
 ```
 
 ## Multi-language sitemap
