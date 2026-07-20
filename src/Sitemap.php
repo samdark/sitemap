@@ -153,7 +153,7 @@ class Sitemap
     {
         return $this->writtenFilePaths;
     }
-    
+
     /**
      * Creates new file.
      * @throws RuntimeException If file is not writeable.
@@ -196,6 +196,7 @@ class Sitemap
         $this->writer->setIndent($this->useIndent);
         $this->writer->startElement('urlset');
         $this->writer->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+        $this->writer->writeAttribute('xmlns:image', 'http://www.google.com/schemas/sitemap-image/1.1');
         if ($this->useXhtml) {
             $this->writer->writeAttribute('xmlns:xhtml', 'http://www.w3.org/1999/xhtml');
         }
@@ -323,16 +324,47 @@ class Sitemap
     }
 
     /**
+     * @param list<non-empty-string> $images List of image-locations to validate and encode.
+     * @return list<non-empty-string> List of validated and encoded image-locations.
+     *
+     * @throws InvalidArgumentException If any of the image locations is not a valid URL or too many images were passed (> 1000).
+     */
+    protected function validateAndEncodeImages(array $images): array
+    {
+        $imagesCount = count($images);
+
+        if ($imagesCount > 1000) {
+            throw new InvalidArgumentException(
+                "The maximum number of images is 1000. You provided $imagesCount."
+            );
+        }
+
+        $encodedImages = [];
+
+        foreach ($images as $location) {
+            $encodedUrl = $this->encodeUrl($location);
+            $this->validateLocation($encodedUrl);
+
+            if ($encodedUrl) {
+                $encodedImages[] = $encodedUrl;
+            }
+        }
+
+        return $encodedImages;
+    }
+
+    /**
      * Adds a new item to sitemap.
      *
      * @param string|array<string, string> $locations Location item URL(s).
      * @param integer|null $lastModified Last modification timestamp.
      * @param string|null $changeFrequency Change frequency. Use one of self:: constants here.
      * @param string|null $priority Item's priority (0.0-1.0). Default `null` is equal to 0.5.
+     * @param list<non-empty-string> $images List of image-locations to add.
      *
      * @throws InvalidArgumentException If one of item values is invalid.
      */
-    public function addItem($locations, ?int $lastModified = null, ?string $changeFrequency = null, ?string $priority = null): void
+    public function addItem($locations, ?int $lastModified = null, ?string $changeFrequency = null, ?string $priority = null, array $images = []): void
     {
         $isMultiLanguage = is_array($locations);
         $delta = $isMultiLanguage ? count($locations) : 1;
@@ -355,10 +387,12 @@ class Sitemap
             $this->createNewFile();
         }
 
+        $encodedImages = $images === [] ? [] : $this->validateAndEncodeImages($images);
+
         if ($isMultiLanguage) {
-            $this->addMultiLanguageItem($locations, $formattedLastModified, $changeFrequency, $priority);
+            $this->addMultiLanguageItem($locations, $formattedLastModified, $changeFrequency, $priority, $encodedImages);
         } else {
-            $this->addSingleLanguageItem($locations, $formattedLastModified, $changeFrequency, $priority);
+            $this->addSingleLanguageItem($locations, $formattedLastModified, $changeFrequency, $priority, $encodedImages);
         }
 
         $prevCount = $this->urlsCount;
@@ -380,12 +414,13 @@ class Sitemap
      * @param ?string $lastModified Formatted last modification timestamp.
      * @param ?string $changeFrequency Change frequency. Use one of self:: constants here.
      * @param ?string $priority Item's priority (0.0-1.0). Default `null` is equal to 0.5.
+     * @param list<non-empty-string> $images List of image-locations to add.
      *
      * @throws InvalidArgumentException If one of item values is invalid.
      *
      * @see addItem.
      */
-    private function addSingleLanguageItem(string $location, ?string $lastModified, ?string $changeFrequency, ?string $priority): void
+    private function addSingleLanguageItem(string $location, ?string $lastModified, ?string $changeFrequency, ?string $priority, array $images): void
     {
         $writer = $this->writer;
         if ($writer === null) {
@@ -415,6 +450,10 @@ class Sitemap
             $writer->writeElement('priority', $priority);
         }
 
+        if ($images !== []) {
+            $this->addImages($writer, $images);
+        }
+
         $writer->endElement();
     }
 
@@ -425,12 +464,13 @@ class Sitemap
      * @param ?string $lastModified Formatted last modification timestamp.
      * @param ?string $changeFrequency Change frequency. Use one of self:: constants here.
      * @param ?string $priority Item's priority (0.0-1.0). Default null is equal to 0.5.
+     * @param list<non-empty-string> $images List of image-locations to add.
      *
      * @throws InvalidArgumentException If one of item values is invalid.
      *
      * @see addItem.
      */
-    private function addMultiLanguageItem(array $locations, ?string $lastModified, ?string $changeFrequency, ?string $priority): void
+    private function addMultiLanguageItem(array $locations, ?string $lastModified, ?string $changeFrequency, ?string $priority, array $images): void
     {
         $writer = $this->writer;
         if ($writer === null) {
@@ -463,14 +503,34 @@ class Sitemap
                 $writer->writeElement('priority', $priority);
             }
 
-            foreach ($encodedLocations as $hreflang => $href) {
-                $writer->startElement('xhtml:link');
-                $writer->writeAttribute('rel', 'alternate');
-                $writer->writeAttribute('hreflang', $hreflang);
-                $writer->writeAttribute('href', $href);
-                $writer->endElement();
+            if ($this->useXhtml) {
+                foreach ($encodedLocations as $hreflang => $href) {
+                    $writer->startElement('xhtml:link');
+                    $writer->writeAttribute('rel', 'alternate');
+                    $writer->writeAttribute('hreflang', $hreflang);
+                    $writer->writeAttribute('href', $href);
+                    $writer->endElement();
+                }
             }
 
+            if ($images !== []) {
+                $this->addImages($writer, $images);
+            }
+
+            $writer->endElement();
+        }
+    }
+
+    /**
+     * @param list<non-empty-string> $images
+     */
+    private function addImages(XMLWriter $writer, array $images): void
+    {
+        foreach ($images as $location) {
+            $writer->startElement('image:image');
+            $writer->startElement('image:loc');
+            $writer->text($location);
+            $writer->endElement();
             $writer->endElement();
         }
     }
